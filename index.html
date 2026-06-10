@@ -369,6 +369,25 @@
   .live-badge .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); box-shadow: 0 0 0 0 var(--success); animation: livePulse 1.9s infinite; }
   @keyframes livePulse { 0% { box-shadow: 0 0 0 0 oklch(55% 0.1 165 / .5); } 70% { box-shadow: 0 0 0 6px oklch(55% 0.1 165 / 0); } 100% { box-shadow: 0 0 0 0 transparent; } }
 
+  /* ===== Celebración (parte / lab terminado) ===== */
+  .cele-back { position: fixed; inset: 0; z-index: 89; display: grid; place-items: center; padding: 24px; animation: fadeIn .2s var(--ease-out); }
+  .cele-back::before { content: ""; position: absolute; inset: 0; background: oklch(28% 0.04 60 / .42); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
+  .cele-confetti { position: absolute; inset: 0; pointer-events: none; }
+  .cele-card { position: relative; z-index: 2; background: var(--surface); border: var(--border) solid var(--hair); border-radius: 22px; box-shadow: var(--shadow-card); padding: 28px 26px; text-align: center; max-width: 380px; width: 100%; animation: popIn .35s var(--ease-spring); }
+  .cele-card.big { max-width: 420px; }
+  .cele-check { width: 78px; height: 78px; border-radius: 50%; margin: 0 auto 16px; background: linear-gradient(160deg, oklch(72% 0.1 165), var(--success)); display: grid; place-items: center; color: #fff; box-shadow: 0 10px 24px -8px var(--success), inset 0 1px 0 oklch(100% 0 0 / .3); animation: celePop .5s var(--ease-spring) both; }
+  @keyframes celePop { from { transform: scale(0) rotate(-25deg); } to { transform: scale(1) rotate(0); } }
+  .cele-check svg { width: 42px; height: 42px; }
+  .cele-check svg path { fill: none; stroke: #fff; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 28; stroke-dashoffset: 28; animation: celeDraw .4s var(--ease-out) .28s forwards; }
+  @keyframes celeDraw { to { stroke-dashoffset: 0; } }
+  .cele-flask { width: 88px; height: 88px; margin: 0 auto 16px; border-radius: 24px; display: grid; place-items: center; color: #fff; background: linear-gradient(160deg, var(--primary-soft), var(--primary)); box-shadow: 0 12px 28px -10px var(--primary), inset 0 1px 0 oklch(100% 0 0 / .3); animation: celePop .55s var(--ease-spring) both; }
+  .cele-flask svg { width: 46px; height: 46px; }
+  .cele-title { font-size: 21px; font-weight: 760; letter-spacing: -0.02em; color: oklch(34% 0.09 48); line-height: 1.15; }
+  .cele-card.big .cele-title { font-size: 24px; }
+  .cele-sub { font-size: 14px; color: oklch(52% 0.05 58); margin-top: 6px; line-height: 1.4; }
+  .cele-btn { appearance: none; border: 0; cursor: pointer; font: inherit; font-size: 15px; font-weight: 650; color: oklch(99% 0.01 90); background: linear-gradient(160deg, var(--primary-soft), var(--primary)); border-radius: 12px; padding: 12px 24px; margin-top: 20px; box-shadow: 0 6px 16px -8px var(--primary); transition: transform .18s var(--ease-spring), filter .18s; }
+  .cele-btn:hover { filter: brightness(1.03); } .cele-btn:active { transform: scale(.96); }
+
   /* ===== Intro: transición tras el login (escena de laboratorio) ===== */
   .intro-back { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; padding: 24px;
     background: radial-gradient(120% 80% at 50% -10%, var(--base-100), var(--base-200) 70%, var(--base-300));
@@ -747,14 +766,29 @@ function canAct(part) {
 }
 
 async function togglePartDone(part) {
-  const done = !!part.completed_at;
-  const fields = done
+  const wasDone = !!part.completed_at;
+  const fields = wasDone
     ? { completed_at: null, completed_by: null }
     : { completed_at: new Date().toISOString(), completed_by: state.session.user.id };
   const { error } = await supabase.from("parts").update(fields).eq("id", part.id);
   if (error) { toast(error.message, "err"); return; }
   await loadLabData(); render();
-  if (!done) askForPhoto(part);
+  if (wasDone) return; // descompletar no festeja
+
+  // hitos para la celebración
+  const myId = state.session.user.id;
+  const labParts = state.parts;
+  const allLabDone = labParts.length > 0 && labParts.every(p => p.completed_at);
+  const myParts = labParts.filter(p => (state.assignByPart[p.id] || []).includes(myId));
+  const allMineDone = myParts.length > 0 && myParts.every(p => p.completed_at);
+
+  const chain = ["part"];
+  if (allLabDone) chain.push("lab");
+  else if (allMineDone && myParts.length >= 2) chain.push("mine");
+  if (allLabDone) broadcastLabDone(); // avisa al resto del grupo en vivo
+
+  const hasPhoto = (state.photosByPart[part.id] || []).length > 0;
+  runCelebrations(chain.slice(), part, () => { if (!hasPhoto) askForPhoto(part); });
 }
 
 async function uploadPhoto(part, file) {
@@ -1659,6 +1693,101 @@ async function openLightbox(photo, part) {
   document.body.appendChild(back);
 }
 
+/* ---------- Celebraciones (confeti de química) ---------- */
+function confettiBurst(canvas, opts) {
+  opts = opts || {};
+  const ctx = canvas.getContext("2d");
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  const W = window.innerWidth, H = window.innerHeight;
+  canvas.width = W * dpr; canvas.height = H * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const count = opts.count || 90, power = opts.power || 9;
+  const ox = opts.ox != null ? opts.ox : W / 2, oy = opts.oy != null ? opts.oy : H * 0.42;
+  const ATOMS = ["H", "O", "C", "N", "Na", "Cl"];
+  const HUE = { H: 8, O: 205, C: 222, N: 265, Na: 35, Cl: 140 };
+  const COLORS = ["hsl(8 75% 62%)", "hsl(205 70% 60%)", "hsl(35 78% 60%)", "hsl(140 48% 52%)", "hsl(265 50% 62%)"];
+  const ps = [];
+  for (let i = 0; i < count; i++) {
+    const a = Math.random() * Math.PI * 2, sp = power * (0.4 + Math.random() * 0.9), atom = Math.random() < 0.55;
+    ps.push({ x: ox, y: oy, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - power * 0.7,
+      g: 0.16 + Math.random() * 0.09, rot: Math.random() * 6.28, vr: (Math.random() - 0.5) * 0.32,
+      size: atom ? (10 + Math.random() * 8) : (5 + Math.random() * 6), life: 0, max: 90 + Math.random() * 50,
+      type: atom ? "atom" : "rect", sym: ATOMS[Math.floor(Math.random() * 6)], color: COLORS[Math.floor(Math.random() * COLORS.length)] });
+  }
+  let raf = 0;
+  function frame() {
+    ctx.clearRect(0, 0, W, H);
+    let alive = 0;
+    for (const p of ps) {
+      p.life++; if (p.life > p.max) continue;
+      alive++;
+      p.vy += p.g; p.x += p.vx; p.y += p.vy; p.vx *= 0.99; p.rot += p.vr;
+      ctx.globalAlpha = Math.max(0, 1 - p.life / p.max);
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+      if (p.type === "atom") {
+        const h = HUE[p.sym] || 14;
+        ctx.beginPath(); ctx.arc(0, 0, p.size, 0, 6.2832); ctx.fillStyle = `hsl(${h} 65% 66%)`; ctx.fill();
+        ctx.fillStyle = `hsl(${h} 60% 26%)`; ctx.font = `700 ${Math.round(p.size * 0.9)}px system-ui, sans-serif`;
+        ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(p.sym, 0, 0.5);
+      } else {
+        ctx.fillStyle = p.color; ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+      }
+      ctx.restore();
+    }
+    ctx.globalAlpha = 1;
+    if (alive > 0) raf = requestAnimationFrame(frame);
+  }
+  raf = requestAnimationFrame(frame);
+  return () => cancelAnimationFrame(raf);
+}
+
+function celebrate(kind, onClose, label) {
+  const big = kind === "lab";
+  const back = el("div", { class: "cele-back" });
+  const canvas = el("canvas", { class: "cele-confetti" });
+  back.appendChild(canvas);
+  const card = el("div", { class: "cele-card" + (big ? " big" : "") });
+  if (big) card.appendChild(el("div", { class: "cele-flask", html: ICON.flask() }));
+  else card.appendChild(el("div", { class: "cele-check", html: '<svg viewBox="0 0 24 24"><path d="M5 12.5l4 4 10-10"/></svg>' }));
+  const titles = { part: "¡Parte terminada!", mine: "¡Completaste todas tus partes!", lab: "¡Laboratorio completado!" };
+  card.appendChild(el("h2", { class: "cele-title", text: titles[kind] || "¡Listo!" }));
+  const sub = kind === "mine" ? "Buen trabajo 👏" : (label || "");
+  if (sub) card.appendChild(el("p", { class: "cele-sub", text: sub }));
+  const btn = el("button", { class: "cele-btn", text: big ? "¡Excelente!" : "Continuar" });
+  card.appendChild(btn);
+  back.appendChild(card);
+  document.body.appendChild(back);
+  const stop = confettiBurst(canvas, big ? { count: 170, power: 13 } : { count: 95, power: 9 });
+  let closed = false;
+  const close = () => {
+    if (closed) return; closed = true;
+    if (stop) stop();
+    back.style.transition = "opacity .3s"; back.style.opacity = "0";
+    setTimeout(() => back.remove(), 300);
+    if (onClose) onClose();
+  };
+  btn.addEventListener("click", close);
+  back.addEventListener("click", e => { if (e.target === back) close(); });
+  setTimeout(close, big ? 4400 : 2900);
+}
+
+function runCelebrations(list, part, done) {
+  if (!list.length) { if (done) done(); return; }
+  const kind = list.shift();
+  const lab = state.labs.find(l => l.id === state.currentLabId);
+  const label = kind === "part" ? part.title : (kind === "lab" ? (lab ? lab.name : "") : "");
+  celebrate(kind, () => runCelebrations(list, part, done), label);
+}
+
+function broadcastLabDone() {
+  try {
+    if (realtimeChannel) {
+      const lab = state.labs.find(l => l.id === state.currentLabId);
+      realtimeChannel.send({ type: "broadcast", event: "lab_done", payload: { labId: state.currentLabId, name: lab ? lab.name : "" } });
+    }
+  } catch (_) {}
+}
+
 /* ---------- nav ---------- */
 async function openLab(id) {
   state.currentLabId = id;
@@ -1680,6 +1809,10 @@ function subscribeRealtime() {
     .on("postgres_changes", { event: "*", schema: "public", table: "parts" }, onRealtimeChange)
     .on("postgres_changes", { event: "*", schema: "public", table: "assignments" }, onRealtimeChange)
     .on("postgres_changes", { event: "*", schema: "public", table: "photos" }, onRealtimeChange)
+    .on("broadcast", { event: "lab_done" }, (msg) => {
+      const p = (msg && msg.payload) || {};
+      if (p.labId && p.labId === state.currentLabId) celebrate("lab", null, p.name || "");
+    })
     .subscribe((status) => {
       const on = status === "SUBSCRIBED";
       if (on !== state.realtimeOn) { state.realtimeOn = on; if (state.view === "app") render(); }
