@@ -462,8 +462,21 @@
   /* ===== Canasta animada + revelado ===== */
   .basket-back { position: fixed; inset: 0; z-index: 88; display: grid; place-items: center; padding: 24px; animation: fadeIn .2s var(--ease-out); }
   .basket-back::before { content: ""; position: absolute; inset: 0; background: oklch(28% 0.04 60 / .5); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
-  .basket-stage { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 18px; animation: popIn .3s var(--ease-spring); }
-  .basket-svg { width: min(48vw, 180px); height: auto; transform-origin: center bottom; }
+  .basket-stage { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 22px; animation: popIn .3s var(--ease-spring); }
+  .bk-wrap { position: relative; display: grid; place-items: center; }
+  .basket-svg { width: min(66vw, 252px); height: auto; transform-origin: center bottom; }
+  /* esferas de elementos volando hacia la canasta */
+  .bk-influx { position: absolute; inset: 0; pointer-events: none; overflow: visible; }
+  .bk-fly { position: absolute; left: 50%; top: 50%; border-radius: 50%; display: grid; place-items: center;
+    color: oklch(30% 0.08 50); font-weight: 800; font-family: var(--meta-font); line-height: 1; opacity: 0;
+    box-shadow: inset 0 1px 0 oklch(100% 0 0 / .45), 0 2px 6px -2px oklch(40% 0.06 50 / .4);
+    animation-name: bkFly; animation-iteration-count: infinite; animation-timing-function: cubic-bezier(.45, 0, .7, 1); will-change: transform, opacity; }
+  @keyframes bkFly {
+    0%   { transform: translate(calc(-50% + var(--fx)), calc(-50% + var(--fy))) scale(1); opacity: 0; }
+    14%  { opacity: 1; }
+    72%  { opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(.22); opacity: 0; }
+  }
   .basket-svg.s1 { animation: bShake1 .5s ease-in-out infinite; }
   .basket-svg.s2 { animation: bShake2 .26s ease-in-out infinite; }
   .basket-svg.s3 { animation: bShake3 .12s linear infinite; }
@@ -1405,7 +1418,8 @@ function openRoster() {
 
 /* ---------- Canasta animada + revelado de equipos ---------- */
 function basketSVG() {
-  return '<svg class="basket-svg" viewBox="0 0 200 200" aria-hidden="true">' +
+  return '<div class="bk-wrap">' +
+    '<svg class="basket-svg" viewBox="0 0 200 200" aria-hidden="true">' +
     // elementos saltando dentro/encima
     '<g class="bk-atoms">' +
       '<circle class="bk-atom a1" cx="80" cy="70" r="13"/>' +
@@ -1419,13 +1433,38 @@ function basketSVG() {
     '<path class="bk-weave" d="M74,98 L68,182 M100,98 L100,184 M126,98 L132,182"/>' +
     // borde
     '<path class="bk-line" d="M40,96 Q40,86 50,86 L150,86 Q160,86 160,96 Q160,104 150,104 L50,104 Q40,104 40,96 Z" fill="oklch(96.5% 0.018 92)"/>' +
-    '</svg>';
+    '</svg>' +
+    '<div class="bk-influx"></div>' +
+    '</div>';
 }
 function basketAtomLabels(host) {
   const hues = [28, 16, 250];
   host.querySelectorAll(".bk-atom").forEach((c, i) => {
     c.setAttribute("fill", `oklch(70% 0.13 ${hues[i % hues.length]})`);
   });
+}
+// esferas de elementos que vuelan hacia adentro de la canasta (en bucle)
+function basketInflux(host) {
+  const wrap = host.querySelector(".bk-influx");
+  if (!wrap) return;
+  const syms = ["H", "O", "C", "N", "Na", "Cl"];
+  const hues = { H: 8, O: 205, C: 222, N: 265, Na: 35, Cl: 140 };
+  const N = 16;
+  for (let i = 0; i < N; i++) {
+    const ang = (i / N) * Math.PI * 2 + Math.random() * 0.6;
+    const dist = 130 + Math.random() * 110;
+    const sym = syms[i % syms.length];
+    const sz = 16 + Math.random() * 13;
+    const s = el("span", { class: "bk-fly", text: sym });
+    s.style.setProperty("--fx", (Math.cos(ang) * dist).toFixed(0) + "px");
+    s.style.setProperty("--fy", (Math.sin(ang) * dist).toFixed(0) + "px");
+    s.style.width = s.style.height = sz.toFixed(0) + "px";
+    s.style.fontSize = (sz * 0.46).toFixed(0) + "px";
+    s.style.background = `oklch(72% 0.13 ${hues[sym]})`;
+    s.style.animationDelay = (Math.random() * 1.8).toFixed(2) + "s";
+    s.style.animationDuration = (1.05 + Math.random() * 0.55).toFixed(2) + "s";
+    wrap.appendChild(s);
+  }
 }
 
 let basketBusy = false;
@@ -1439,6 +1478,7 @@ function playBasketReveal() {
   document.body.appendChild(back);
   const svg = stage.querySelector(".basket-svg");
   basketAtomLabels(stage);
+  basketInflux(stage);
 
   const finish = () => {
     basketBusy = false;
@@ -1466,7 +1506,8 @@ function playBasketReveal() {
     const closeBtn = el("button", { class: "cele-btn", text: "¡Listo!", onclick: () => { if (stop) stop(); finish(); } });
 
     if (mine) {
-      const delay = 700 + state.teams.length * 90;
+      // deja ver el mosaico completo un buen rato antes de hacer zoom a tu equipo
+      const delay = Math.min(3200 + state.teams.length * 180, 5200);
       setTimeout(() => {
         grid.classList.add("dim");
         const spot = el("div", { class: "team-spotlight" });
@@ -1474,12 +1515,12 @@ function playBasketReveal() {
         spot.appendChild(teamCardNode(mine, { big: true }));
         spot.appendChild(closeBtn);
         back.appendChild(spot);
-      }, Math.min(delay, 1600));
+      }, delay);
     } else {
       panel.appendChild(closeBtn);
     }
     // cierre automático de respaldo
-    setTimeout(() => { if (basketBusy) { if (stop) stop(); finish(); } }, 9000);
+    setTimeout(() => { if (basketBusy) { if (stop) stop(); finish(); } }, 16000);
   };
 
   if (reduce) { reveal(); return; }
