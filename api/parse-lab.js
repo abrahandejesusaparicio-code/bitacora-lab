@@ -45,7 +45,7 @@ export default async function handler(req, res) {
             items: {
               type: "object",
               properties: {
-                title: { type: "string", description: "Título corto de la parte (ej. 'Parte A — Fusión del hielo')." },
+                title: { type: "string", description: "Título corto de la parte (ej. 'Parte A — Fusión del hielo'). Conserva la MISMA palabra que use la guía: si dice 'Fase' usa 'Fase', si dice 'Parte' usa 'Parte', si dice 'Experimento' usa 'Experimento'." },
                 description: { type: "string", description: "RESUMEN breve (1-3 frases) de qué se hace en esta parte. Aquí sí puedes resumir." },
                 equipment: { type: "array", items: { type: "string" }, description: "Equipo/material que se usa, si se menciona." },
                 steps: {
@@ -81,7 +81,8 @@ export default async function handler(req, res) {
           { type: "text", text:
             "Este es el PDF de una guía de laboratorio de química (probablemente en español). " +
             "Extrae el nombre del laboratorio y divídelo en sus PARTES o secciones del procedimiento " +
-            "(por ejemplo 'Parte I', 'Parte II', o cada experimento). Para cada parte da:\n" +
+            "(por ejemplo 'Parte I', 'Parte II', 'Fase 1', o cada experimento). Conserva en el TÍTULO la " +
+            "misma palabra que use la guía (Parte / Fase / Experimento). Para cada parte da:\n" +
             "1) un TÍTULO corto;\n" +
             "2) una DESCRIPCIÓN breve (1-3 frases) — aquí sí puedes resumir;\n" +
             "3) el EQUIPO/material que se usa, si aparece;\n" +

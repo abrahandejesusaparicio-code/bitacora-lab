@@ -691,6 +691,22 @@ const elBySym = sym => TEAM_ELEMENTS.find(e => e.sym === sym) || { sym, name: sy
 const teamColor = sym => `oklch(62% 0.145 ${elBySym(sym).hue})`;
 const teamLabel = t => "Equipo " + (t ? (elBySym(t.element_symbol).name || t.element_name) : "");
 
+/* ---------- Terminología por lab: "partes" o "fases" ----------
+   No es un campo nuevo: se detecta de cómo se titulan las partes del lab
+   (si dicen "Fase 1…", la app muestra "Fases"; si no, "Partes"). */
+const UNIT_TERMS = {
+  parte: { s: "parte", p: "partes", S: "Parte", P: "Partes" },
+  fase:  { s: "fase",  p: "fases",  S: "Fase",  P: "Fases"  },
+};
+function unitTerm(parts) {
+  let f = 0, p = 0;
+  (parts || []).forEach(pt => {
+    const t = ((pt && pt.title) || "").trimStart().toLowerCase();
+    if (/^fases?\b/.test(t)) f++; else if (/^partes?\b/.test(t)) p++;
+  });
+  return UNIT_TERMS[f > p ? "fase" : "parte"];
+}
+
 /* ---------------- Estado ---------------- */
 const state = {
   view: "loading",          // loading | auth | app
@@ -952,7 +968,7 @@ async function addPart(title, description = null, equipment = []) {
   if (error) { logErr("Agregar parte", error); return; }
   console.log("[addPart] OK:", data);
   await loadLabData(); render();
-  toast("Parte agregada", "ok");
+  toast(unitTerm(state.parts).S + " agregada", "ok");
 }
 async function updatePart(id, fields) {
   const { error } = await supabase.from("parts").update(fields).eq("id", id);
@@ -1160,7 +1176,7 @@ async function randomizeSections(labId) {
   if (!state.teams.length) { toast("Primero forma los equipos", "err"); return; }
   if (state.sectionLabId !== labId) await loadSections(labId);
   const parts = state.sectionParts;
-  if (!parts.length) { toast("Este laboratorio no tiene partes", "err"); return; }
+  if (!parts.length) { toast("Este laboratorio no tiene " + unitTerm(parts).p, "err"); return; }
   const teams = shuffled(state.teams);
   const rows = parts.map((p, i) => ({ part_id: p.id, team_id: teams[i % teams.length].id }));
   await supabase.from("swap_requests").delete().in("from_part_id", parts.map(p => p.id));
@@ -1285,7 +1301,7 @@ function collectLabPhotos(lab) {
 async function downloadPartPhotos(part) {
   const lab = state.labs.find(l => l.id === state.currentLabId);
   const photos = state.photosByPart[part.id] || [];
-  if (!photos.length) { toast("Esta parte no tiene fotos", "err"); return; }
+  if (!photos.length) { toast("Esta " + unitTerm(state.parts).s + " no tiene fotos", "err"); return; }
   const idx = state.parts.findIndex(p => p.id === part.id);
   const base = `${sanitize(lab ? lab.name : "lab")}_${String(idx + 1).padStart(2, "0")}_${sanitize(part.title)}`;
   for (let j = 0; j < photos.length; j++) {
@@ -1643,6 +1659,7 @@ function partBubbleNode(part, opts) {
 }
 
 function renderSections() {
+  const T = unitTerm(state.sectionParts);
   const wrap = el("div");
   const sec = el("div", { class: "section-row" });
   sec.appendChild(el("h2", { text: "Secciones" }));
@@ -1665,11 +1682,11 @@ function renderSections() {
   if (isAdmin()) {
     const bar = el("div", { class: "sec-admin-bar" });
     const hasParts = state.sectionParts.length > 0, hasTeams = state.teams.length > 0;
-    const btn = el("button", { class: "btn-sm", html: ICON.sparkle({ size: 15 }) + (Object.keys(state.partTeam).length ? " Volver a repartir" : " Repartir partes"),
+    const btn = el("button", { class: "btn-sm", html: ICON.sparkle({ size: 15 }) + (Object.keys(state.partTeam).length ? " Volver a repartir" : " Repartir " + T.p),
       disabled: !hasParts || !hasTeams, onclick: () => randomizeSections(state.sectionLabId) });
     bar.appendChild(btn);
     if (!hasTeams) bar.appendChild(el("span", { class: "sec-hint", text: "Forma equipos primero (pestaña Equipos)." }));
-    else if (!hasParts) bar.appendChild(el("span", { class: "sec-hint", text: "Este lab no tiene partes." }));
+    else if (!hasParts) bar.appendChild(el("span", { class: "sec-hint", text: "Este lab no tiene " + T.p + "." }));
     wrap.appendChild(bar);
   }
 
@@ -1679,7 +1696,7 @@ function renderSections() {
     const rq = el("div", { class: "card req-card" });
     rq.appendChild(el("div", { class: "req-head", text: "Intercambios de sección" }));
     const partById = id => state.sectionParts.find(p => p.id === id);
-    const partLabel = id => { const p = partById(id); const i = state.sectionParts.findIndex(x => x.id === id); return p ? `Parte ${i + 1} · ${p.title}` : "—"; };
+    const partLabel = id => { const p = partById(id); const i = state.sectionParts.findIndex(x => x.id === id); return p ? `${T.S} ${i + 1} · ${p.title}` : "—"; };
     inc.forEach(s => {
       const fromTeam = teamById(state.partTeam[s.from_part_id]);
       const row = el("div", { class: "req-row" });
@@ -1708,7 +1725,7 @@ function renderSections() {
 
   if (!state.sectionParts.length) {
     wrap.appendChild(el("div", { class: "card" }, el("div", { class: "empty", html:
-      `<div class="e-ic">${ICON.beaker({ size: 26 })}</div><h3>Sin partes</h3><p>Este laboratorio aún no tiene partes.</p>` })));
+      `<div class="e-ic">${ICON.beaker({ size: 26 })}</div><h3>Sin ${T.p}</h3><p>Este laboratorio aún no tiene ${T.p}.</p>` })));
     return wrap;
   }
 
@@ -1796,7 +1813,7 @@ function confirmSwap(fromPart, toPart) {
     modal.appendChild(el("h2", { text: "Solicitar intercambio" }));
     modal.appendChild(el("p", { class: "modal-sub", html: `Ofreces <b>${escapeHtml(fromPart.title)}</b> a cambio de <b>${escapeHtml(toPart.title)}</b> de ${escapeHtml(teamLabel(toTeam))}. El otro equipo debe aceptar.` }));
     const stack = el("div", { class: "stack" });
-    stack.appendChild(el("button", { class: "modal-btn ghost", html: ICON.doc({ size: 18 }) + " Ver detalles de las partes", onclick: () => openSwapDetails(toPart, fromPart) }));
+    stack.appendChild(el("button", { class: "modal-btn ghost", html: ICON.doc({ size: 18 }) + " Ver detalles de las " + unitTerm(state.sectionParts).p, onclick: () => openSwapDetails(toPart, fromPart) }));
     stack.appendChild(el("button", { class: "modal-btn primary", html: ICON.check({ size: 18 }) + " Enviar solicitud", onclick: () => { close(); doRequestSwap(fromPart, toPart); } }));
     stack.appendChild(el("button", { class: "modal-btn ghost", text: "Cancelar", onclick: close }));
     modal.appendChild(stack);
@@ -1830,8 +1847,9 @@ async function openSwapDetails(receivePart, givePart) {
   openModal((modal, close) => {
     modal.appendChild(el("h2", { text: "Detalles del intercambio" }));
     modal.appendChild(el("p", { class: "modal-sub", text: "Compara qué recibes y qué entregas antes de decidir." }));
-    modal.appendChild(partDetailBlock(rec, "↓ Recibes esta parte", "oklch(42% 0.1 165)"));
-    modal.appendChild(partDetailBlock(giv, "↑ Entregas esta parte", "oklch(50% 0.16 28)"));
+    const T = unitTerm(state.sectionParts);
+    modal.appendChild(partDetailBlock(rec, "↓ Recibes esta " + T.s, "oklch(42% 0.1 165)"));
+    modal.appendChild(partDetailBlock(giv, "↑ Entregas esta " + T.s, "oklch(50% 0.16 28)"));
     modal.appendChild(el("button", { class: "btn-sm ghost", style: { marginTop: "16px", width: "100%" }, text: "Cerrar", onclick: close }));
   });
 }
@@ -2119,12 +2137,13 @@ function renderLabDetail() {
   wrap.appendChild(titleSec);
   if (lab.description) wrap.appendChild(el("p", { text: lab.description, style: { margin: "0 2px 8px", fontSize: "13.5px", color: "oklch(52% 0.05 58)", lineHeight: "1.5" } }));
 
+  const T = unitTerm(state.parts);
   const card = el("div", { class: "card" });
   if (isAdmin()) card.appendChild(renderAddPart());
 
   if (!state.parts.length) {
     card.appendChild(el("div", { class: "empty", html:
-      `<div class="e-ic">${ICON.sparkle({ size: 26 })}</div><h3>Sin partes todavía</h3><p>${isAdmin() ? "Agrega la primera parte arriba." : "El administrador aún no agrega partes."}</p>` }));
+      `<div class="e-ic">${ICON.sparkle({ size: 26 })}</div><h3>Sin ${T.p} todavía</h3><p>${isAdmin() ? `Agrega la primera ${T.s} arriba.` : `El administrador aún no agrega ${T.p}.`}</p>` }));
   } else {
     state.parts.forEach((part, i) => card.appendChild(renderPart(part, i)));
   }
@@ -2132,22 +2151,24 @@ function renderLabDetail() {
 
   if (isAdmin() && state.parts.length) {
     wrap.appendChild(el("div", { class: "section-row" }, el("p", { style: { fontSize: "12px", color: "oklch(56% 0.04 58)", lineHeight: "1.5" },
-      text: "Usa 👥 para asignar compañeros a cada parte. Cada persona asignada (y tú) puede marcarla hecha y subir una foto con 📷." })));
+      text: `Usa 👥 para asignar compañeros a cada ${T.s}. Cada persona asignada (y tú) puede marcarla hecha y subir una foto con 📷.` })));
   }
   return wrap;
 }
 
 function renderAddPart() {
+  const T = unitTerm(state.parts);
   const bar = el("div", { class: "add-bar", style: { justifyContent: "center" } });
-  bar.appendChild(el("button", { class: "btn-sm", html: ICON.plus({ size: 15 }) + " Agregar parte", onclick: openAddPart }));
+  bar.appendChild(el("button", { class: "btn-sm", html: ICON.plus({ size: 15 }) + " Agregar " + T.s, onclick: openAddPart }));
   return bar;
 }
 
 function openAddPart() {
+  const T = unitTerm(state.parts);
   openModal((modal, close) => {
-    modal.appendChild(el("h2", { text: "Nueva parte" }));
-    modal.appendChild(el("p", { class: "modal-sub", text: "Agrega una parte/sección de este laboratorio." }));
-    const title = el("input", { class: "minput", placeholder: "Ej. Parte A — Fusión del hielo" });
+    modal.appendChild(el("h2", { text: "Nueva " + T.s }));
+    modal.appendChild(el("p", { class: "modal-sub", text: `Agrega una ${T.s} de este laboratorio.` }));
+    const title = el("input", { class: "minput", placeholder: `Ej. ${T.S} A — Fusión del hielo` });
     const desc = el("textarea", { class: "ta", placeholder: "Instrucciones / qué hacer (opcional)" });
     modal.appendChild(el("span", { class: "mlabel", text: "Título" })); modal.appendChild(title);
     modal.appendChild(el("span", { class: "mlabel", text: "Descripción" })); modal.appendChild(desc);
@@ -2225,7 +2246,7 @@ function renderPart(part, i) {
       pr.appendChild(img);
     });
     if (act) pr.appendChild(el("button", { class: "photo-add", title: "Agregar foto", html: ICON.camera({ size: 18 }), onclick: () => pickPhoto(part) }));
-    if (photos.length && isAdmin()) pr.appendChild(el("button", { class: "photo-add photo-dl", title: "Descargar foto(s) de esta parte", html: ICON.download({ size: 17 }), onclick: () => downloadPartPhotos(part) }));
+    if (photos.length && isAdmin()) pr.appendChild(el("button", { class: "photo-add photo-dl", title: "Descargar foto(s) de esta " + unitTerm(state.parts).s, html: ICON.download({ size: 17 }), onclick: () => downloadPartPhotos(part) }));
     body.appendChild(pr);
   }
   row.appendChild(body);
@@ -2235,7 +2256,7 @@ function renderPart(part, i) {
     actions.appendChild(el("button", { class: "icon-btn", title: "Asignar personas", html: ICON.users({ size: 15 }), onclick: () => openAssign(part) }));
     actions.appendChild(el("button", { class: "icon-btn", title: "Editar", html: ICON.edit({ size: 15 }), onclick: () => openEditPart(part) }));
     actions.appendChild(el("button", { class: "icon-btn", title: "Eliminar", html: ICON.trash({ size: 15 }),
-      onclick: () => { if (confirm(`¿Eliminar la parte "${part.title}"?`)) deletePart(part.id); } }));
+      onclick: () => { if (confirm(`¿Eliminar la ${unitTerm(state.parts).s} "${part.title}"?`)) deletePart(part.id); } }));
     row.appendChild(actions);
   }
   return row;
@@ -2380,17 +2401,18 @@ function importLabFromPdf() {
 }
 function openPdfPreview(data) {
   const parts = Array.isArray(data.parts) ? data.parts.slice() : [];
+  const T = unitTerm(parts);
   openModal((modal, close) => {
     modal.appendChild(el("h2", { text: "Revisar laboratorio" }));
-    modal.appendChild(el("p", { class: "modal-sub", text: `Claude detectó ${parts.length} parte(s). Revisa, ajusta el nombre y crea el laboratorio.` }));
+    modal.appendChild(el("p", { class: "modal-sub", text: `Claude detectó ${parts.length} ${parts.length === 1 ? T.s : T.p}. Revisa, ajusta el nombre y crea el laboratorio.` }));
     modal.appendChild(el("span", { class: "mlabel", text: "Nombre del laboratorio" }));
     const nameInput = el("input", { class: "minput", value: data.lab_name || "" });
     modal.appendChild(nameInput);
-    modal.appendChild(el("span", { class: "mlabel", text: "Partes detectadas" }));
+    modal.appendChild(el("span", { class: "mlabel", text: T.P + " detectadas" }));
     const list = el("div", { class: "assign-list" });
     function renderList() {
       list.innerHTML = "";
-      if (!parts.length) { list.appendChild(el("p", { class: "modal-sub", text: "No quedan partes." })); return; }
+      if (!parts.length) { list.appendChild(el("p", { class: "modal-sub", text: "No quedan " + T.p + "." })); return; }
       parts.forEach((p, i) => {
         const item = el("div", { class: "assign-item", style: { cursor: "default", alignItems: "flex-start" } });
         item.appendChild(el("span", { class: "ai-av", style: { background: "var(--surface-2)", color: "oklch(48% 0.06 56)" }, text: String(i + 1) }));
@@ -2412,7 +2434,7 @@ function openPdfPreview(data) {
       onclick: async () => {
         const name = nameInput.value.trim(); if (!name) { nameInput.focus(); return; }
         close();
-        const done = showLoading("Creando laboratorio y partes…");
+        const done = showLoading("Creando laboratorio y " + T.p + "…");
         const lab = await createLab({ name, description: null, lab_date: null });
         if (!lab) { done(); return; }
         let okCount = 0, failCount = 0, stepsMissing = false, lastErr = null;
@@ -2420,7 +2442,7 @@ function openPdfPreview(data) {
           const p = parts[i];
           const base = {
             lab_id: lab.id, position: i,
-            title: (p.title || ("Parte " + (i + 1))).slice(0, 200),
+            title: (p.title || (T.S + " " + (i + 1))).slice(0, 200),
             description: p.description || null,
             equipment: Array.isArray(p.equipment) ? p.equipment : [],
           };
@@ -2438,7 +2460,7 @@ function openPdfPreview(data) {
         render();
         if (failCount) { done(); toast(`Se crearon ${okCount}/${parts.length} partes. ${lastErr ? lastErr.message : ""}`, "err"); }
         else {
-          done({ success: true, label: "¡Laboratorio listo!", sub: `Se prepararon ${okCount} parte(s).` });
+          done({ success: true, label: "¡Laboratorio listo!", sub: `Se prepararon ${okCount} ${okCount === 1 ? T.s : T.p}.` });
           if (stepsMissing) toast("Corre supabase-add-steps.sql para activar las instrucciones detalladas.", "ok");
         }
       } }));
@@ -2522,7 +2544,7 @@ function openPartDetail(part) {
       modal.appendChild(wrap);
     } else {
       modal.appendChild(el("p", { class: "modal-sub", style: { marginTop: "14px" },
-        text: isAdmin() ? "Esta parte no tiene instrucciones detalladas todavía. Toca 'Editar' para agregarlas, o crea el lab desde el PDF para que se llenen solas." : "No hay instrucciones detalladas para esta parte todavía." }));
+        text: isAdmin() ? `Esta ${unitTerm(state.parts).s} no tiene instrucciones detalladas todavía. Toca 'Editar' para agregarlas, o crea el lab desde el PDF para que se llenen solas.` : `No hay instrucciones detalladas para esta ${unitTerm(state.parts).s} todavía.` }));
     }
 
     const actions = el("div", { class: "modal-actions" });
@@ -2573,10 +2595,11 @@ function openPartDetailEditor(part) {
 }
 
 function openEditPart(part) {
+  const T = unitTerm(state.parts);
   openModal((modal, close) => {
-    modal.appendChild(el("h2", { text: "Editar parte" }));
+    modal.appendChild(el("h2", { text: "Editar " + T.s }));
     const title = el("input", { class: "minput", value: part.title });
-    const desc = el("textarea", { class: "ta", value: part.description || "", placeholder: "Instrucciones / qué hacer en esta parte" });
+    const desc = el("textarea", { class: "ta", value: part.description || "", placeholder: `Instrucciones / qué hacer en esta ${T.s}` });
     modal.appendChild(el("span", { class: "mlabel", text: "Título" })); modal.appendChild(title);
     modal.appendChild(el("span", { class: "mlabel", text: "Descripción" })); modal.appendChild(desc);
     modal.appendChild(el("span", { class: "mlabel", text: "Equipo / material" }));
@@ -2594,7 +2617,7 @@ function openEditPart(part) {
       onclick: async () => {
         const v = title.value.trim(); if (!v) { title.focus(); return; }
         await updatePart(part.id, { title: v, description: desc.value.trim() || null, equipment: [...chosen] });
-        close(); toast("Parte actualizada", "ok");
+        close(); toast(T.S + " actualizada", "ok");
       } }));
     modal.appendChild(actions);
   });
@@ -2798,7 +2821,7 @@ async function openCamera(part, facing = "environment") {
 }
 
 function askForPhoto(part) {
-  choosePhotoSource(part, { title: "¡Parte completada!", subtitle: "¿Deseas adjuntar una fotografía de tu trabajo?", allowSkip: true });
+  choosePhotoSource(part, { title: "¡" + unitTerm(state.parts).S + " completada!", subtitle: "¿Deseas adjuntar una fotografía de tu trabajo?", allowSkip: true });
 }
 
 function pickPhoto(part) {
@@ -2883,7 +2906,8 @@ function celebrate(kind, onClose, label) {
   const card = el("div", { class: "cele-card" + (big ? " big" : "") });
   if (big) card.appendChild(el("div", { class: "cele-flask", html: ICON.flask() }));
   else card.appendChild(el("div", { class: "cele-check", html: '<svg viewBox="0 0 24 24"><path d="M5 12.5l4 4 10-10"/></svg>' }));
-  const titles = { part: "¡Parte terminada!", mine: "¡Completaste todas tus partes!", lab: "¡Laboratorio completado!" };
+  const T = unitTerm(state.parts);
+  const titles = { part: `¡${T.S} terminada!`, mine: `¡Completaste todas tus ${T.p}!`, lab: "¡Laboratorio completado!" };
   card.appendChild(el("h2", { class: "cele-title", text: titles[kind] || "¡Listo!" }));
   const sub = kind === "mine" ? "Buen trabajo 👏" : (label || "");
   if (sub) card.appendChild(el("p", { class: "cele-sub", text: sub }));
