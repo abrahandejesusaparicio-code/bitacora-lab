@@ -549,6 +549,34 @@
   .v-bub.b2 { animation-delay: .5s; } .v-bub.b3 { animation-delay: .9s; }
   .volcano-svg.vs2 .v-bub { animation-duration: 1s; } .volcano-svg.vs3 .v-bub { animation-duration: .6s; }
 
+  /* ===== Cargador: tablilla redactando el reporte ===== */
+  .clip-loader { display: grid; place-items: center; }
+  .clip-board { position: relative; width: 152px; height: 190px; }
+  .clip-back { position: absolute; inset: 0; border-radius: 16px; background: oklch(86% 0.045 52); border: 2.5px solid oklch(40% 0.08 52); box-shadow: var(--shadow-card); transition: box-shadow .5s; }
+  .clip-clip { position: absolute; z-index: 5; top: -9px; left: 50%; transform: translateX(-50%); width: 44px; height: 20px; border-radius: 7px; background: oklch(80% 0.05 52); border: 2.5px solid oklch(40% 0.08 52); }
+  .clip-clip::after { content: ""; position: absolute; top: 5px; left: 50%; transform: translateX(-50%); width: 20px; height: 7px; border-radius: 4px; background: oklch(40% 0.08 52 / .5); }
+  .clip-papers { position: absolute; inset: 16px 12px 12px; perspective: 1000px; }
+  .clip-paper { position: absolute; inset: 0; border-radius: 8px; background: var(--surface); box-shadow: inset 0 0 0 1.5px oklch(80% 0.05 90 / .55); overflow: hidden; }
+  .clip-paper.front { z-index: 3; transform-origin: top center; backface-visibility: hidden; transition: transform .85s var(--ease-out); }
+  .clip-paper.back { z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 11px; transition: box-shadow .5s; }
+  .clip-board.done .clip-paper.front { transform: rotateX(172deg); }
+  .clip-board.done .clip-back { box-shadow: 0 0 26px -2px oklch(62% 0.13 165 / .55), var(--shadow-card); }
+  .clip-board.done .clip-paper.back { box-shadow: inset 0 0 0 1.5px oklch(72% 0.08 165 / .5), 0 0 20px -6px oklch(60% 0.13 165 / .6); }
+  .cl-line { position: absolute; left: 14px; height: 5px; border-radius: 3px; background: oklch(80% 0.035 60); transform: scaleX(0); transform-origin: left center; animation: clWrite 3.6s ease-in-out infinite; }
+  @keyframes clWrite { 0% { transform: scaleX(0); } 14% { transform: scaleX(1); } 90% { transform: scaleX(1); } 100% { transform: scaleX(0); } }
+  .clip-board.done .cl-line { animation: none; }
+  .clip-pen-wrap { position: absolute; left: 4px; top: 2px; animation: clPenDown 3.6s ease-in-out infinite; }
+  @keyframes clPenDown { 0% { transform: translateY(0); } 90% { transform: translateY(88px); } 100% { transform: translateY(0); } }
+  .clip-pen { width: 38px; height: 38px; transform-origin: 9px 37px; animation: clPenAcross .62s ease-in-out infinite; }
+  @keyframes clPenAcross { 0% { transform: translateX(2px) rotate(-3deg); } 50% { transform: translateX(80px) rotate(3deg); } 100% { transform: translateX(2px) rotate(-3deg); } }
+  .clip-board.done .clip-pen-wrap { animation: none; opacity: 0; transition: opacity .25s; }
+  .clip-check { width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; color: #fff;
+    background: linear-gradient(160deg, oklch(72% 0.1 165), var(--success)); box-shadow: 0 6px 16px -6px var(--success), inset 0 1px 0 oklch(100% 0 0 / .3);
+    animation: celePop .5s var(--ease-spring) both; }
+  .clip-check svg { width: 26px; height: 26px; }
+  .clip-check svg path { fill: none; stroke: #fff; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 28; stroke-dashoffset: 28; animation: celeDraw .4s var(--ease-out) .25s forwards; }
+  .clip-done-text { font-size: 14px; font-weight: 760; letter-spacing: -0.01em; color: oklch(40% 0.1 165); text-align: center; line-height: 1.15; padding: 0 8px; }
+
   /* ===== Onda al hacer clic ===== */
   .click-ripple { position: fixed; z-index: 95; width: 20px; height: 20px; margin: -10px 0 0 -10px; border-radius: 50%;
     pointer-events: none; background: var(--rc); border: 2px solid var(--rc);
@@ -2201,15 +2229,46 @@ function fileToBase64(file) {
     reader.readAsDataURL(file);
   });
 }
+// Cargador "redactando el reporte": tablilla con hoja + pluma escribiendo (estilo línea como el matraz).
+function clipboardHTML() {
+  const tops = [16, 32, 48, 64, 80, 96], widths = [100, 84, 94, 70, 90, 58];
+  let lines = "";
+  for (let i = 0; i < tops.length; i++)
+    lines += `<span class="cl-line" style="top:${tops[i]}px;width:${widths[i]}%;animation-delay:${(i * 0.34).toFixed(2)}s"></span>`;
+  const pen = '<div class="clip-pen-wrap"><svg class="clip-pen" viewBox="0 0 40 40" aria-hidden="true">' +
+    '<path d="M12 28 L30 10 q3 -3 6 0 q3 3 0 6 L18 34 Z" fill="oklch(80% 0.114 19.571)" stroke="oklch(40% 0.08 52)" stroke-width="2" stroke-linejoin="round"/>' +
+    '<path d="M12 28 L18 34 L9 37 Z" fill="oklch(40% 0.08 52)"/>' +
+    '<line x1="29" y1="13" x2="33" y2="17" stroke="oklch(40% 0.08 52)" stroke-width="2" stroke-linecap="round"/>' +
+    '</svg></div>';
+  return '<div class="clip-back"></div><div class="clip-clip"></div>' +
+    '<div class="clip-papers"><div class="clip-paper back"></div>' +
+    '<div class="clip-paper front">' + lines + pen + '</div></div>';
+}
 function showLoading(text) {
   const back = el("div", { class: "modal-back" });
   const modal = el("div", { class: "modal center" });
-  modal.appendChild(flaskLoader());
-  modal.appendChild(el("h2", { text: "Un momento…", style: { marginTop: "12px" } }));
-  modal.appendChild(el("p", { class: "modal-sub", text: text }));
+  const board = el("div", { class: "clip-board", html: clipboardHTML() });
+  modal.appendChild(el("div", { class: "clip-loader" }, board));
+  const heading = el("h2", { text: "Un momento…", style: { marginTop: "16px" } });
+  const sub = el("p", { class: "modal-sub", text: text });
+  modal.appendChild(heading); modal.appendChild(sub);
   back.appendChild(modal);
   document.body.appendChild(back);
-  return () => back.remove();
+  // finish() cierra; finish({success:true, label, sub}) hace el "volteo de página" y celebra.
+  return function finish(opts) {
+    opts = opts || {};
+    if (!opts.success) { back.remove(); return; }
+    const backPage = board.querySelector(".clip-paper.back");
+    backPage.innerHTML = '<div class="clip-check"><svg viewBox="0 0 24 24"><path d="M5 12.5l4 4 10-10"/></svg></div>';
+    backPage.appendChild(el("div", { class: "clip-done-text", text: opts.label || "¡Laboratorio listo!" }));
+    board.classList.add("done");
+    heading.textContent = "¡Listo!";
+    sub.textContent = opts.sub || "Tu laboratorio está preparado.";
+    const canvas = el("canvas", { class: "cele-confetti" });
+    back.appendChild(canvas);
+    const stop = confettiBurst(canvas, { count: 90, power: 9 });
+    setTimeout(() => { if (stop) stop(); back.style.transition = "opacity .35s"; back.style.opacity = "0"; setTimeout(() => back.remove(), 360); }, opts.hold || 1800);
+  };
 }
 function importLabFromPdf() {
   const inp = el("input", { type: "file", accept: "application/pdf,.pdf", style: { display: "none" } });
@@ -2291,11 +2350,12 @@ function openPdfPreview(data) {
         }
         state.currentLabId = lab.id;
         await loadLabData();
-        done();
         render();
-        if (failCount) toast(`Se crearon ${okCount}/${parts.length} partes. ${lastErr ? lastErr.message : ""}`, "err");
-        else if (stepsMissing) toast("Lab creado. Corre supabase-add-steps.sql para activar las instrucciones detalladas.", "ok");
-        else toast("Laboratorio creado desde PDF ✓", "ok");
+        if (failCount) { done(); toast(`Se crearon ${okCount}/${parts.length} partes. ${lastErr ? lastErr.message : ""}`, "err"); }
+        else {
+          done({ success: true, label: "¡Laboratorio listo!", sub: `Se prepararon ${okCount} parte(s).` });
+          if (stepsMissing) toast("Corre supabase-add-steps.sql para activar las instrucciones detalladas.", "ok");
+        }
       } }));
     modal.appendChild(actions);
   });
