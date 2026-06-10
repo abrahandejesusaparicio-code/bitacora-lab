@@ -1,0 +1,175 @@
+<div class="gal-title">
+  <h1>Bitácora de Lab — Galería de animaciones</h1>
+  <p>Diseños reusando el CSS real de la app · capturas para revisión</p>
+</div>
+<div class="gal" id="gal"></div>
+
+<style>
+  body { padding: 28px 22px 60px !important; }
+  .gal-title { max-width: 1180px; margin: 0 auto 22px; text-align: center; }
+  .gal-title h1 { font-size: 26px; font-weight: 760; letter-spacing: -0.02em; color: oklch(34% 0.09 48); }
+  .gal-title p { font-size: 13.5px; color: oklch(52% 0.05 58); margin-top: 4px; }
+  .gal { max-width: 1180px; margin: 0 auto; display: grid; grid-template-columns: repeat(2, 1fr); gap: 22px; }
+  .panel { position: relative; background: var(--surface); border: var(--border) solid var(--hair); border-radius: 20px; box-shadow: var(--shadow-card); overflow: hidden; display: flex; flex-direction: column; }
+  .panel-h { padding: 12px 16px; border-bottom: 1px solid var(--hair); font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); font-family: var(--meta-font); background: var(--surface-2); }
+  .panel-b { position: relative; flex: 1; min-height: 280px; display: grid; place-items: center; padding: 22px; }
+  .panel.dark .panel-b { background: oklch(26% 0.035 60); }
+  .panel-b > canvas.scoped { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  .cele-card { z-index: 2; }   /* tarjeta sobre el confeti, como en la app */
+  .ripple-stage { position: absolute; inset: 0; }
+  .ripple-stage .click-ripple { position: absolute !important; z-index: 1; }
+  .ripple-hint { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); font-size: 13px; font-weight: 600; color: oklch(52% 0.05 58); }
+</style>
+
+<script>
+/* ------- helpers de iconos (subset del app) ------- */
+function svg(paths, o){ o=o||{}; const vb=o.vb||24,size=o.size||20,sw=o.sw||1.8; const inner=(Array.isArray(paths)?paths:[paths]).map(d=>'<path d="'+d+'"/>').join(''); return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 '+vb+' '+vb+'" fill="none" stroke="currentColor" stroke-width="'+sw+'" stroke-linecap="round" stroke-linejoin="round">'+inner+'</svg>'; }
+const ICON = {
+  flask:o=>svg(["M9 3h6M10 3v6.5L5.2 17.5a2 2 0 0 0 1.7 3h10.2a2 2 0 0 0 1.7-3L14 9.5V3","M7.4 14h9.2"],o),
+  users:o=>svg(["M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z","M2.5 20a6.5 6.5 0 0 1 13 0","M16 4.2a3.5 3.5 0 0 1 0 6.6","M18 13.5a6.5 6.5 0 0 1 3.5 6.5"],o),
+  sparkle:o=>svg("M12 4l1.6 4.4L18 10l-4.4 1.6L12 16l-1.6-4.4L6 10l4.4-1.6L12 4z",o),
+};
+
+/* ------- SVGs de las animaciones (copiados del app) ------- */
+const flaskSVG = '<svg viewBox="0 0 240 250" aria-hidden="true"><defs><linearGradient id="flLiq0" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="oklch(80% 0.114 19.571)"/><stop offset="1" stop-color="oklch(69% 0.145 26)"/></linearGradient><clipPath id="flClip0"><path d="M104,44 L104,96 L54,198 Q49,212 66,212 L174,212 Q191,212 186,198 L136,96 L136,44 Z"/></clipPath></defs><g clip-path="url(#flClip0)"><rect class="fl-liquid" x="36" y="60" width="168" height="180" fill="url(#flLiq0)"/><circle class="fl-bubble" cx="96" cy="185" r="6"/><circle class="fl-bubble b2" cx="124" cy="195" r="5"/><circle class="fl-bubble b3" cx="142" cy="182" r="7"/></g><path class="fl-line" d="M104,44 L104,96 L54,198 Q49,212 66,212 L174,212 Q191,212 186,198 L136,96 L136,44"/><line class="fl-line" x1="98" y1="44" x2="142" y2="44"/></svg>';
+
+function basketSVG(){
+  return '<div class="bk-wrap"><svg class="basket-svg s2" viewBox="0 0 200 200" aria-hidden="true">'+
+    '<g class="bk-atoms"><circle class="bk-atom a1" cx="80" cy="70" r="13" fill="oklch(70% 0.13 28)"/><circle class="bk-atom a2" cx="118" cy="64" r="11" fill="oklch(70% 0.13 16)"/><circle class="bk-atom a3" cx="100" cy="78" r="10" fill="oklch(70% 0.13 250)"/></g>'+
+    '<path class="bk-line" d="M44,96 L156,96 L142,176 Q140,184 132,184 L68,184 Q60,184 58,176 Z"/>'+
+    '<path class="bk-weave" d="M52,118 H148 M55,140 H145 M59,162 H141"/>'+
+    '<path class="bk-weave" d="M74,98 L68,182 M100,98 L100,184 M126,98 L132,182"/>'+
+    '<path class="bk-line" d="M40,96 Q40,86 50,86 L150,86 Q160,86 160,96 Q160,104 150,104 L50,104 Q40,104 40,96 Z" fill="oklch(96.5% 0.018 92)"/>'+
+    '</svg><div class="bk-influx"></div></div>';
+}
+function volcanoSVG(){
+  return '<div class="volcano-wrap"><svg class="volcano-svg vs3" viewBox="0 0 240 200" aria-hidden="true"><defs>'+
+    '<linearGradient id="vLavaG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="oklch(80% 0.16 60)"/><stop offset="1" stop-color="oklch(63% 0.21 32)"/></linearGradient>'+
+    '<clipPath id="vCrater"><path d="M92,72 Q120,60 148,72 L154,90 L86,90 Z"/></clipPath></defs>'+
+    '<g clip-path="url(#vCrater)"><rect class="v-lava" x="80" y="64" width="80" height="44" fill="url(#vLavaG)"/>'+
+      '<circle class="v-bub b1" cx="108" cy="86" r="4"/><circle class="v-bub b2" cx="126" cy="88" r="3.4"/><circle class="v-bub b3" cx="136" cy="84" r="5"/></g>'+
+    '<path class="v-line" d="M28,182 L92,74 Q120,60 148,74 L212,182 Z"/>'+
+    '<path class="v-line" d="M86,90 Q120,78 154,90"/>'+
+    '<path class="v-vein" d="M98,150 q14,-12 28,-2 M126,168 q16,-12 34,-4"/></svg></div>';
+}
+function clipPenHTML(){
+  return '<div class="clip-pen-wrap"><svg class="clip-pen" viewBox="0 0 40 40" aria-hidden="true">'+
+    '<path d="M12 28 L30 10 q3 -3 6 0 q3 3 0 6 L18 34 Z" fill="oklch(80% 0.114 19.571)" stroke="oklch(40% 0.08 52)" stroke-width="2" stroke-linejoin="round"/>'+
+    '<path d="M12 28 L18 34 L9 37 Z" fill="oklch(40% 0.08 52)"/>'+
+    '<line x1="29" y1="13" x2="33" y2="17" stroke="oklch(40% 0.08 52)" stroke-width="2" stroke-linecap="round"/></svg></div>';
+}
+
+/* ------- tarjetas ------- */
+function teamCard(sym,name,no,hue,members,mine,big){
+  const col='oklch(62% 0.145 '+hue+')';
+  const rows=members.map(m=>'<div class="tm-row"><span class="av" style="background:'+m.c+'">'+m.i+'</span><span class="tm-name">'+m.n+'</span></div>').join('');
+  return '<div class="team-card'+(mine?' mine':'')+(big?' big':'')+'"><div class="tc-head"><span class="team-el'+(big?' big':'')+'" style="background:'+col+'"><span class="te-no">'+no+'</span><span class="te-sym">'+sym+'</span></span><div class="tc-info"><div class="tc-name">Equipo '+name+'</div><div class="tc-count">'+members.length+' integrantes</div></div></div><div class="team-members">'+rows+'</div></div>';
+}
+function partBubble(n,sym,no,hue,title,name,mine,big){
+  const col='oklch(62% 0.145 '+hue+')';
+  return '<div class="pb-item'+(mine?' mine':'')+(big?' big':'')+'"><div class="part-bubble" style="background:radial-gradient(circle at 35% 30%, oklch(88% 0.07 '+hue+'), '+col+')"><span class="pb-num" style="color:oklch(33% 0.13 '+hue+')">'+n+'</span><span class="pb-el" style="background:'+col+'">'+sym+'</span></div><div class="pb-title">'+title+'</div><div class="pb-team">Equipo '+name+'</div></div>';
+}
+function celeCard(kind){
+  const checkSVG='<svg viewBox="0 0 24 24"><path d="M5 12.5l4 4 10-10"/></svg>';
+  if(kind==='part') return '<div class="cele-card"><div class="cele-check">'+checkSVG+'</div><h2 class="cele-title">¡Parte terminada!</h2><p class="cele-sub">Reacciones con sulfato de cobre</p><button class="cele-btn">Continuar</button></div>';
+  if(kind==='lab')  return '<div class="cele-card big"><div class="cele-flask">'+ICON.flask({size:46})+'</div><h2 class="cele-title">¡Laboratorio completado!</h2><p class="cele-sub">Lab 4 — Cambios físicos y químicos</p><button class="cele-btn">¡Excelente!</button></div>';
+  if(kind==='join') return '<div class="cele-card"><div class="cele-flask" style="background:linear-gradient(160deg, var(--secondary-soft), var(--secondary))">'+ICON.users({size:46})+'</div><h2 class="cele-title">¡Nuevo integrante!</h2><p class="cele-sub"><strong>Abrahan</strong> se unió a <strong>Equipo Cobre</strong></p><button class="cele-btn">¡Genial!</button></div>';
+  if(kind==='swap') return '<div class="cele-card"><div class="cele-flask" style="background:linear-gradient(160deg, var(--accent), oklch(62% 0.17 50))">'+ICON.sparkle({size:46})+'</div><h2 class="cele-title">¡Intercambio hecho!</h2><p class="cele-sub"><strong>Equipo Helio</strong> ⇄ <strong>Equipo Cobre</strong> intercambiaron secciones</p><button class="cele-btn">¡Genial!</button></div>';
+  return '';
+}
+
+/* ------- confeti acotado a un panel ------- */
+function panelConfetti(canvas, opts){
+  opts=opts||{}; const ctx=canvas.getContext('2d'); const dpr=Math.min(2, window.devicePixelRatio||1);
+  const W=canvas.clientWidth, H=canvas.clientHeight; canvas.width=W*dpr; canvas.height=H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
+  const count=opts.count||70, power=opts.power||8, ox=W/2, oy=opts.oy!=null?opts.oy:H*0.42;
+  const ATOMS=["H","O","C","N","Na","Cl"], HUE={H:8,O:205,C:222,N:265,Na:35,Cl:140};
+  const COLORS=["hsl(8 75% 62%)","hsl(205 70% 60%)","hsl(35 78% 60%)","hsl(140 48% 52%)","hsl(265 50% 62%)"];
+  const ps=[];
+  for(let i=0;i<count;i++){ const a=Math.random()*Math.PI*2, sp=power*(0.4+Math.random()*0.9), atom=Math.random()<0.55;
+    ps.push({x:ox,y:oy,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-power*0.7,g:0.16+Math.random()*0.09,rot:Math.random()*6.28,vr:(Math.random()-0.5)*0.32,
+      size:atom?(10+Math.random()*8):(5+Math.random()*6),life:0,max:90+Math.random()*50,type:atom?"atom":"rect",sym:ATOMS[Math.floor(Math.random()*6)],color:COLORS[Math.floor(Math.random()*COLORS.length)]}); }
+  function step(p){ p.life++; p.vy+=p.g; p.x+=p.vx; p.y+=p.vy; p.vx*=0.99; p.rot+=p.vr; }
+  function drawAll(){ ctx.clearRect(0,0,W,H);
+    for(const p of ps){ if(p.life>p.max) continue;
+      ctx.globalAlpha=Math.max(0,1-p.life/p.max); ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot);
+      if(p.type==="atom"){ const h=HUE[p.sym]||14; ctx.beginPath(); ctx.arc(0,0,p.size,0,6.2832); ctx.fillStyle="hsl("+h+" 65% 66%)"; ctx.fill();
+        ctx.fillStyle="hsl("+h+" 60% 26%)"; ctx.font="700 "+Math.round(p.size*0.9)+"px system-ui,sans-serif"; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillText(p.sym,0,0.5);
+      } else { ctx.fillStyle=p.color; ctx.fillRect(-p.size/2,-p.size/2,p.size,p.size*0.6); } ctx.restore(); }
+    ctx.globalAlpha=1; }
+  if(opts.freeze){ for(let f=0;f<opts.freeze;f++){ for(const p of ps) if(p.life<=p.max) step(p); } drawAll(); return; }
+  function frame(){ let alive=0; for(const p of ps){ if(p.life>p.max) continue; alive++; step(p); } drawAll(); if(alive>0) requestAnimationFrame(frame); }
+  requestAnimationFrame(frame);
+}
+function basketInflux(host){ const wrap=host.querySelector(".bk-influx"); if(!wrap) return;
+  const syms=["H","O","C","N","Na","Cl"], hues={H:8,O:205,C:222,N:265,Na:35,Cl:140};
+  for(let i=0;i<16;i++){ const ang=(i/16)*Math.PI*2+Math.random()*0.6, dist=130+Math.random()*110, sym=syms[i%6], sz=16+Math.random()*13;
+    const s=document.createElement('span'); s.className='bk-fly'; s.textContent=sym;
+    s.style.setProperty('--fx',(Math.cos(ang)*dist).toFixed(0)+'px'); s.style.setProperty('--fy',(Math.sin(ang)*dist).toFixed(0)+'px');
+    s.style.width=s.style.height=sz.toFixed(0)+'px'; s.style.fontSize=(sz*0.46).toFixed(0)+'px'; s.style.background='oklch(72% 0.13 '+hues[sym]+')';
+    s.style.animationDelay=(Math.random()*1.8).toFixed(2)+'s'; s.style.animationDuration=(1.05+Math.random()*0.55).toFixed(2)+'s'; wrap.appendChild(s); }
+}
+const CLIP_LINES=[{t:16,w:100},{t:33,w:84},{t:50,w:94},{t:67,w:70},{t:84,w:90},{t:101,w:58}];
+function clipPage(){ const p=document.createElement('div'); p.className='clip-paper writing';
+  CLIP_LINES.forEach((L,i)=>{ const s=document.createElement('span'); s.className='cl-line'; s.style.top=L.t+'px'; s.style.width=L.w+'%'; s.style.animationDelay=(i*0.56).toFixed(2)+'s'; p.appendChild(s); });
+  p.insertAdjacentHTML('beforeend', clipPenHTML()); return p; }
+
+/* ------- fondo de elementos ------- */
+function drawBg(canvas){ const ctx=canvas.getContext('2d'); const dpr=2; const W=canvas.clientWidth,H=canvas.clientHeight; canvas.width=W*dpr;canvas.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
+  const EL={H:{h:8,s:75},O:{h:205,s:70},C:{h:222,s:16},N:{h:265,s:50},Na:{h:35,s:78},Cl:{h:140,s:48},_c:{h:14,s:64}};
+  const items=[['H',70,70,23],['O',180,90,25],['Na',110,170,22],['Cl',260,150,20],['H₂O',320,80,30,'_c'],['N',360,180,22],['C',420,90,21]];
+  items.forEach(it=>{ const sym=it[0],x=it[1],y=it[2],r=it[3],k=it[4]; const e=EL[k||sym]||EL._c;
+    const g=ctx.createRadialGradient(x-r*.32,y-r*.32,r*.1,x,y,r); g.addColorStop(0,'hsl('+e.h+' '+e.s+'% 84%)'); g.addColorStop(1,'hsl('+e.h+' '+e.s+'% 62%)');
+    ctx.globalAlpha=k?0.66:0.6; ctx.beginPath();ctx.arc(x,y,r,0,6.28);ctx.fillStyle=g;ctx.fill();
+    ctx.globalAlpha=0.5;ctx.lineWidth=1.5;ctx.strokeStyle='hsl('+e.h+' '+Math.min(60,e.s)+'% 48%)';ctx.stroke();
+    ctx.globalAlpha=0.9;ctx.fillStyle='hsl('+e.h+' '+e.s+'% 26%)';ctx.font='700 '+Math.round(r*.7)+'px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(sym,x,y); ctx.globalAlpha=1; });
+}
+
+/* ------- arma la galería ------- */
+const M1=[{i:'AA',n:'Abrahan',c:'oklch(60% 0.14 140)'},{i:'EL',n:'Elipsis',c:'oklch(60% 0.14 40)'}];
+const M2=[{i:'T3',n:'test 3',c:'oklch(60% 0.14 260)'},{i:'T2',n:'test 2',c:'oklch(60% 0.14 320)'}];
+const M3=[{i:'AA',n:'Abrahan',c:'oklch(60% 0.14 200)'},{i:'A',n:'Abrahan_Admin',c:'oklch(60% 0.14 140)'}];
+
+const panels = [
+  {name:'01-matraz', h:'Matraz · cargando', b:'<div class="flask-loader">'+flaskSVG+'<div class="fl-text">Generando…</div></div>'},
+  {name:'02-canasta', h:'Canasta · agitando (lootbox)', b:'<div class="basket-stage">'+basketSVG()+'<div class="basket-text">Agitando la canasta…</div></div>', after:p=>basketInflux(p)},
+  {name:'03-equipos-revelado', dark:true, b:'<div class="basket-reveal"><div class="reveal-title">¡Equipos formados!</div><div class="reveal-grid">'+teamCard('Ag','Plata',47,250,M3,true)+teamCard('Cu','Cobre',29,28,M1,false)+teamCard('Au','Oro',79,85,M2,false)+'</div></div>', h:'Equipos · revelado'},
+  {name:'04-tu-equipo', dark:true, h:'Equipos · tu equipo (zoom)', b:'<div class="team-spotlight" style="position:relative;transform:none;opacity:1;animation:none;width:auto"><div class="spot-label">Tu equipo</div>'+teamCard('Ag','Plata',47,250,M3,true,true)+'<button class="cele-btn">¡Listo!</button></div>'},
+  {name:'05-volcan', h:'Volcán · erupción', b:'<div class="basket-stage">'+volcanoSVG()+'<div class="basket-text">¡Va a hacer erupción!</div></div>'},
+  {name:'06-secciones-revelado', dark:true, h:'Secciones · revelado (burbujas en tarjeta)', b:'<div class="basket-reveal"><div class="reveal-title">¡Secciones repartidas!</div><div class="bubble-grid">'+partBubble(1,'Ti',22,240,'Parte I — Reacciones con sulfato de cobre','Titanio',true)+partBubble(2,'Mn',25,320,'Parte II — Magnesio y sodio','Manganeso')+partBubble(3,'Ca',20,60,'Parte III — Clavo de hierro','Calcio')+partBubble(4,'Ti',22,240,'Parte IV — Calentamiento','Titanio',true)+'</div></div>'},
+  {name:'07-tu-seccion', dark:true, h:'Secciones · tu sección (zoom)', b:'<div class="team-spotlight tray" style="position:relative;transform:none;opacity:1;animation:none;width:auto"><div class="spot-label">Tus secciones · Equipo Titanio</div><div class="bubble-grid">'+partBubble(1,'Ti',22,240,'Parte I — Reacciones','Titanio',true,true)+partBubble(4,'Ti',22,240,'Parte IV — Calentamiento','Titanio',true,true)+'</div><button class="cele-btn">¡Listo!</button></div>'},
+  {name:'08-tablilla-escribe', h:'Tablilla · redactando', b:'<div class="clip-loader"><div class="clip-board"><div class="clip-back"></div><div class="clip-clip"></div><div class="clip-papers" id="clipw"></div></div></div>', after:p=>{ const w=p.querySelector('#clipw'); w.appendChild(clipPage()); }},
+  {name:'09-tablilla-listo', h:'Tablilla · ¡Laboratorio listo!', b:'<div class="clip-loader"><div class="clip-board done"><div class="clip-back"></div><div class="clip-clip"></div><div class="clip-papers"><div class="clip-paper donepage"><div class="clip-check"><svg viewBox="0 0 24 24"><path d="M5 12.5l4 4 10-10"/></svg></div><div class="clip-done-text">¡Laboratorio listo!</div></div></div></div></div>'},
+  {name:'10-cele-parte', h:'Celebración · parte terminada', b:'<canvas class="scoped" data-confetti="80"></canvas>'+celeCard('part')},
+  {name:'11-cele-lab', h:'Celebración · laboratorio completado', b:'<canvas class="scoped" data-confetti="150"></canvas>'+celeCard('lab')},
+  {name:'12-cele-union', h:'Celebración · nuevo integrante', b:'<canvas class="scoped" data-confetti="110"></canvas>'+celeCard('join')},
+  {name:'13-cele-intercambio', h:'Celebración · intercambio de sección', b:'<canvas class="scoped" data-confetti="110"></canvas>'+celeCard('swap')},
+  {name:'14-onda-clic', h:'Onda al hacer clic (color aleatorio)', b:'<div class="ripple-stage" id="ripples"></div><div class="ripple-hint">Onda al tocar</div>'},
+  {name:'15-fondo', h:'Fondo · elementos químicos (arrastrables)', b:'<canvas class="scoped" id="bgc"></canvas>'},
+];
+
+const gal=document.getElementById('gal');
+panels.forEach(p=>{
+  const panel=document.createElement('div'); panel.className='panel'+(p.dark?' dark':''); panel.setAttribute('data-name', p.name);
+  panel.innerHTML='<div class="panel-h">'+(p.h||p.name)+'</div><div class="panel-b">'+p.b+'</div>';
+  gal.appendChild(panel);
+  const body=panel.querySelector('.panel-b');
+  if(p.after) p.after(body);
+});
+
+// confeti en paneles de celebración (re-disparable justo antes de capturar)
+window.__fireConfetti = function(){
+  document.querySelectorAll('canvas.scoped[data-confetti]').forEach(c=>{
+    panelConfetti(c, { count:+c.dataset.confetti, power:(+c.dataset.confetti>120?11:9), oy: c.clientHeight*0.5, freeze: 15 });
+  });
+};
+window.__fireConfetti();
+// fondo de elementos
+const bgc=document.getElementById('bgc'); if(bgc) drawBg(bgc);
+// ondas congeladas a media expansión
+const rip=document.getElementById('ripples');
+if(rip){ const hues=[8,205,222,265,35,140]; const pos=[[80,95,-0.10],[215,70,-0.22],[150,185,-0.16],[310,150,-0.30],[370,95,-0.13]];
+  pos.forEach((q,i)=>{ const s=document.createElement('span'); s.className='click-ripple'; s.style.left=q[0]+'px'; s.style.top=q[1]+'px';
+    s.style.setProperty('--rc','oklch(64% 0.17 '+hues[i%hues.length]+')'); s.style.animationPlayState='paused'; s.style.animationDelay=q[2]+'s'; rip.appendChild(s); }); }
+window.__galReady = true;
+</script>

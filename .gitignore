@@ -21,3 +21,6 @@ results from supabasefix.md
 .DS_Store
 Thumbs.db
 node_modules/
+
+# Capturas generadas por tools/shoot.mjs (se regeneran; no van al repo)
+tools/shots/

@@ -44,5 +44,36 @@ Una bitácora de laboratorio multi-dispositivo con cuentas reales y dos roles �
 - **IA:** una función serverless en Vercel que usa la API de Anthropic (**Claude**) para leer los PDF de las guías.
 - **Hosting:** Vercel, con despliegue automático desde GitHub.
 
+## Estructura del repo
+
+```
+index.html          # toda la app (UI + estilos + lógica, JS vanilla)
+api/parse-lab.js    # función serverless: PDF → partes (Claude)
+SQL/                # scripts de Supabase (esquema + RLS + realtime)
+tools/              # utilidades de dev (galería de animaciones)
+ARCHITECTURE.md     # cómo funciona todo el sistema
+CONTRIBUTING.md     # flujo de ramas y PRs
+```
+
+## Para desarrolladores
+
+¿Quieres correrlo o contribuir? El sistema completo (frontend, base de datos,
+función serverless y despliegue) está documentado en **[ARCHITECTURE.md](ARCHITECTURE.md)**.
+
+**Inicio rápido:**
+1. Crea un proyecto en [Supabase](https://supabase.com) y corre los scripts de `SQL/` en orden
+   (detalle en [ARCHITECTURE.md §6](ARCHITECTURE.md#6-base-de-datos-supabase--postgres--rls)).
+2. Pon tu `SUPABASE_URL` y `SUPABASE_ANON_KEY` en `index.html`.
+3. Para el import de PDF, define `ANTHROPIC_API_KEY` como variable de entorno en Vercel.
+4. Corre en local con `vercel dev` (app + función) o sirve `index.html` como estático.
+
+No hay paso de build: el frontend es un solo `index.html` editable a mano.
+
+## Contribuir
+
+Las contribuciones son bienvenidas. Lee **[CONTRIBUTING.md](CONTRIBUTING.md)** para el
+flujo de ramas/PRs y el estilo de código. En resumen: rama descriptiva → commits claros →
+PR hacia `main` (que se despliega solo, así que mantenlo sano).
+
 ---
 Hecho por **Abrahan Aparicio** · Universidad Latina de Panamá
