@@ -324,6 +324,31 @@
     .section-row h2 { font-size: 15px; }
   }
 
+  /* ===== Intro: transición tras el login (escena de laboratorio) ===== */
+  .intro-back { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; padding: 24px;
+    background: radial-gradient(120% 80% at 50% -10%, var(--base-100), var(--base-200) 70%, var(--base-300));
+    animation: introOut .55s var(--ease-out) 1.75s forwards; }
+  .intro-back::before { content: ""; position: absolute; inset: 0; opacity: .5; mix-blend-mode: multiply; background-size: 180px; pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E"); }
+  .intro-scene { position: relative; display: flex; flex-direction: column; align-items: center; gap: 20px; animation: introIn .5s var(--ease-spring) both; }
+  @keyframes introIn { from { opacity: 0; transform: scale(.92); } to { opacity: 1; transform: none; } }
+  @keyframes introOut { to { opacity: 0; visibility: hidden; transform: scale(1.04); } }
+  .intro-svg { width: min(56vw, 210px); height: auto; }
+  .intro-line { fill: none; stroke: oklch(34% 0.09 48); stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+  .intro-tick { stroke: oklch(34% 0.09 48 / .8); stroke-width: 2.6; stroke-linecap: round; }
+  .intro-liquid { transform-box: fill-box; animation: liquidRise 1.5s var(--ease-out) .25s both; }
+  @keyframes liquidRise { from { transform: translateY(92px); } to { transform: translateY(14px); } }
+  .intro-bubble { fill: oklch(98% 0.012 90 / .85); animation: bubbleUp 1.7s ease-in infinite; }
+  .intro-bubble.b2 { animation-delay: .55s; } .intro-bubble.b3 { animation-delay: 1s; }
+  @keyframes bubbleUp { 0% { transform: translateY(2px) scale(.5); opacity: 0; } 25% { opacity: .9; } 100% { transform: translateY(-44px) scale(1); opacity: 0; } }
+  .intro-drop { fill: var(--primary); animation: dropFall 1.05s ease-in infinite; }
+  .intro-drop.d2 { animation-delay: .4s; } .intro-drop.d3 { animation-delay: .75s; }
+  @keyframes dropFall { 0% { transform: translateY(-6px); opacity: 0; } 20% { opacity: 1; } 75% { opacity: 1; } 100% { transform: translateY(34px); opacity: 0; } }
+  .intro-title { font-size: 27px; font-weight: 800; letter-spacing: .03em; color: oklch(30% 0.09 48); display: inline-flex; align-items: flex-end; gap: 3px; }
+  .intro-title .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--primary); margin-bottom: 5px; animation: introdot 1s ease-in-out infinite; }
+  @keyframes introdot { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: .45; } }
+  .intro-sub { font-size: 12px; font-weight: 650; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); font-family: var(--meta-font); }
+
   @media (prefers-reduced-motion: reduce) { * { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; } }
 </style>
 </head>
@@ -392,6 +417,7 @@ const state = {
   authNotice: "",
   showPass: false,
   busy: false,
+  playIntro: false,         // animación de entrada solo tras login explícito
   labs: [],
   currentLabId: null,
   parts: [],
@@ -492,6 +518,43 @@ async function applySession(session) {
     state.view = "auth";
   }
   render();
+  if (session && state.playIntro) { state.playIntro = false; playIntro(); }
+}
+
+// Animación de entrada: escena de laboratorio (matraz llenándose) — SVG + CSS, ligera.
+function playIntro() {
+  const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const back = el("div", { class: "intro-back" });
+  back.innerHTML =
+    '<div class="intro-scene">' +
+      '<svg class="intro-svg" viewBox="0 0 240 250" aria-hidden="true">' +
+        '<defs>' +
+          '<linearGradient id="introLiq" x1="0" y1="0" x2="0" y2="1">' +
+            '<stop offset="0" stop-color="oklch(80% 0.114 19.571)"/>' +
+            '<stop offset="1" stop-color="oklch(69% 0.145 26)"/>' +
+          '</linearGradient>' +
+          '<clipPath id="introFlask"><path d="M104,44 L104,96 L54,198 Q49,212 66,212 L174,212 Q191,212 186,198 L136,96 L136,44 Z"/></clipPath>' +
+        '</defs>' +
+        '<g clip-path="url(#introFlask)">' +
+          '<rect class="intro-liquid" x="36" y="60" width="168" height="180" fill="url(#introLiq)"/>' +
+          '<circle class="intro-bubble" cx="96" cy="185" r="5"/>' +
+          '<circle class="intro-bubble b2" cx="122" cy="195" r="4"/>' +
+          '<circle class="intro-bubble b3" cx="142" cy="182" r="6"/>' +
+        '</g>' +
+        '<path class="intro-line" d="M104,44 L104,96 L54,198 Q49,212 66,212 L174,212 Q191,212 186,198 L136,96 L136,44"/>' +
+        '<line class="intro-line" x1="98" y1="44" x2="142" y2="44"/>' +
+        '<line class="intro-tick" x1="120" y1="110" x2="132" y2="110"/>' +
+        '<line class="intro-tick" x1="120" y1="124" x2="129" y2="124"/>' +
+        '<line class="intro-tick" x1="120" y1="138" x2="132" y2="138"/>' +
+        '<ellipse class="intro-drop" cx="120" cy="56" rx="3.2" ry="4.4"/>' +
+        '<ellipse class="intro-drop d2" cx="120" cy="56" rx="3.2" ry="4.4"/>' +
+        '<ellipse class="intro-drop d3" cx="120" cy="56" rx="3.2" ry="4.4"/>' +
+      '</svg>' +
+      '<div class="intro-title">Cargando<span class="dot"></span></div>' +
+      '<div class="intro-sub">Bitácora de Lab</div>' +
+    '</div>';
+  document.body.appendChild(back);
+  setTimeout(() => back.remove(), reduce ? 550 : 2350);
 }
 
 supabase.auth.onAuthStateChange((event, session) => {
@@ -511,6 +574,8 @@ async function doSignup(full_name, email, password) {
     state.authMode = "login";
     state.authNotice = "Cuenta creada. Revisa tu correo para confirmarla y luego inicia sesión.";
     render();
+  } else {
+    state.playIntro = true; // sesión inmediata → animación de entrada
   }
   // si hay sesión, onAuthStateChange se encarga
 }
@@ -519,7 +584,7 @@ async function doLogin(email, password) {
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   state.busy = false;
   if (error) { state.authError = traducirError(error.message); render(); }
-  // éxito → onAuthStateChange
+  else state.playIntro = true; // éxito → animación de entrada (onAuthStateChange renderiza)
 }
 async function doLogout() { await supabase.auth.signOut(); }
 
