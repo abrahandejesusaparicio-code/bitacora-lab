@@ -497,7 +497,13 @@
   .reveal-grid .team-card { animation: popIn .4s var(--ease-spring) both; }
   .reveal-grid.dim { filter: blur(2.5px) brightness(.72); }
   .basket-reveal .cele-btn { display: block; margin: 18px auto 0; }
+  /* velo borroso entre el mosaico y el destacado (para que el frente sí difumine el fondo) */
+  .spot-scrim { position: fixed; inset: 0; z-index: 89; background: oklch(24% 0.03 60 / .55); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); animation: fadeIn .4s var(--ease-out); }
   .team-spotlight { position: fixed; z-index: 90; left: 50%; top: 50%; width: min(330px, 86vw); transform: translate(-50%, -50%) scale(.6); opacity: 0; animation: spotIn .55s var(--ease-spring) forwards; display: flex; flex-direction: column; align-items: stretch; gap: 12px; }
+  /* bandeja con fondo (secciones): texto legible sobre el velo oscuro */
+  .team-spotlight.tray { background: var(--surface); border: var(--border) solid var(--hair); border-radius: 22px; box-shadow: 0 24px 60px -18px oklch(20% 0.05 50 / .7); padding: 20px 18px; gap: 14px; }
+  .team-spotlight.tray .spot-label { color: var(--accent); }
+  .team-spotlight.tray .bubble-grid { gap: 16px 14px; }
   @keyframes spotIn { to { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
   .team-spotlight .spot-label { text-align: center; font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); font-family: var(--meta-font); }
   .team-spotlight .team-card { box-shadow: 0 0 0 2px var(--accent-active), 0 24px 60px -18px oklch(40% 0.1 45 / .6); }
@@ -531,6 +537,15 @@
   .pb-team { font-size: 11px; font-weight: 600; color: oklch(52% 0.05 58); font-family: var(--meta-font); }
   .pb-item.mine .part-bubble { outline: 3px solid var(--accent-active); outline-offset: 3px; }
 
+  /* detalles del intercambio */
+  .swap-det { background: var(--surface-2); border: 1.5px solid var(--hair); border-radius: 12px; padding: 12px 14px; margin-top: 12px; }
+  .swap-det-head { font-size: 11px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; font-family: var(--meta-font); margin-bottom: 4px; }
+  .swap-det-title { font-size: 15px; font-weight: 700; color: oklch(34% 0.09 48); line-height: 1.25; }
+  .swap-det-desc { font-size: 13px; color: oklch(50% 0.05 58); line-height: 1.5; margin-top: 5px; white-space: pre-wrap; }
+  .swap-det-sub { font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--accent); font-family: var(--meta-font); margin-top: 10px; }
+  .swap-steps { margin: 6px 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: 5px; }
+  .swap-steps li { font-size: 13px; line-height: 1.5; color: oklch(44% 0.07 50); }
+
   /* ===== Volcán animado ===== */
   .volcano-wrap { position: relative; display: grid; place-items: center; }
   .volcano-svg { width: min(70vw, 280px); height: auto; transform-origin: center 80%; }
@@ -555,21 +570,20 @@
   .clip-back { position: absolute; inset: 0; border-radius: 16px; background: oklch(86% 0.045 52); border: 2.5px solid oklch(40% 0.08 52); box-shadow: var(--shadow-card); transition: box-shadow .5s; }
   .clip-clip { position: absolute; z-index: 5; top: -9px; left: 50%; transform: translateX(-50%); width: 44px; height: 20px; border-radius: 7px; background: oklch(80% 0.05 52); border: 2.5px solid oklch(40% 0.08 52); }
   .clip-clip::after { content: ""; position: absolute; top: 5px; left: 50%; transform: translateX(-50%); width: 20px; height: 7px; border-radius: 4px; background: oklch(40% 0.08 52 / .5); }
-  .clip-papers { position: absolute; inset: 16px 12px 12px; perspective: 1000px; }
-  .clip-paper { position: absolute; inset: 0; border-radius: 8px; background: var(--surface); box-shadow: inset 0 0 0 1.5px oklch(80% 0.05 90 / .55); overflow: hidden; }
-  .clip-paper.front { z-index: 3; transform-origin: top center; backface-visibility: hidden; transition: transform .85s var(--ease-out); }
-  .clip-paper.back { z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 11px; transition: box-shadow .5s; }
-  .clip-board.done .clip-paper.front { transform: rotateX(172deg); }
+  .clip-papers { position: absolute; inset: 16px 12px 12px; perspective: 1100px; }
+  .clip-paper { position: absolute; inset: 0; border-radius: 8px; background: var(--surface); box-shadow: inset 0 0 0 1.5px oklch(80% 0.05 90 / .55); overflow: hidden; transform-origin: top center; backface-visibility: hidden; transition: box-shadow .5s; }
+  .clip-paper.writing { z-index: 2; }
+  .clip-paper.donepage { z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 11px; }
+  .clip-paper.turning { z-index: 5; animation: clTurn .78s var(--ease-out) forwards; }
+  @keyframes clTurn { 0% { transform: rotateX(0); opacity: 1; } 100% { transform: rotateX(-166deg); opacity: .12; } }
   .clip-board.done .clip-back { box-shadow: 0 0 26px -2px oklch(62% 0.13 165 / .55), var(--shadow-card); }
-  .clip-board.done .clip-paper.back { box-shadow: inset 0 0 0 1.5px oklch(72% 0.08 165 / .5), 0 0 20px -6px oklch(60% 0.13 165 / .6); }
-  .cl-line { position: absolute; left: 14px; height: 5px; border-radius: 3px; background: oklch(80% 0.035 60); transform: scaleX(0); transform-origin: left center; animation: clWrite 3.6s ease-in-out infinite; }
-  @keyframes clWrite { 0% { transform: scaleX(0); } 14% { transform: scaleX(1); } 90% { transform: scaleX(1); } 100% { transform: scaleX(0); } }
-  .clip-board.done .cl-line { animation: none; }
-  .clip-pen-wrap { position: absolute; left: 4px; top: 2px; animation: clPenDown 3.6s ease-in-out infinite; }
-  @keyframes clPenDown { 0% { transform: translateY(0); } 90% { transform: translateY(88px); } 100% { transform: translateY(0); } }
-  .clip-pen { width: 38px; height: 38px; transform-origin: 9px 37px; animation: clPenAcross .62s ease-in-out infinite; }
-  @keyframes clPenAcross { 0% { transform: translateX(2px) rotate(-3deg); } 50% { transform: translateX(80px) rotate(3deg); } 100% { transform: translateX(2px) rotate(-3deg); } }
-  .clip-board.done .clip-pen-wrap { animation: none; opacity: 0; transition: opacity .25s; }
+  .clip-board.done .clip-paper.donepage { box-shadow: inset 0 0 0 1.5px oklch(72% 0.08 165 / .5), 0 0 20px -6px oklch(60% 0.13 165 / .6); }
+  .cl-line { position: absolute; left: 14px; height: 5px; border-radius: 3px; background: oklch(80% 0.035 60); transform: scaleX(0); transform-origin: left center; animation: clWrite .52s ease-out forwards; }
+  @keyframes clWrite { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  .clip-pen-wrap { position: absolute; left: 4px; top: 0; animation: clPenDown 3.36s linear forwards; }
+  @keyframes clPenDown { from { transform: translateY(0); } to { transform: translateY(85px); } }
+  .clip-pen { width: 38px; height: 38px; transform-origin: 9px 37px; animation: clPenAcross .56s ease-in-out infinite; }
+  @keyframes clPenAcross { 0% { transform: translateX(2px) rotate(-3.5deg); } 50% { transform: translateX(80px) rotate(2.5deg); } 100% { transform: translateX(2px) rotate(-3.5deg); } }
   .clip-check { width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; color: #fff;
     background: linear-gradient(160deg, oklch(72% 0.1 165), var(--success)); box-shadow: 0 6px 16px -6px var(--success), inset 0 1px 0 oklch(100% 0 0 / .3);
     animation: celePop .5s var(--ease-spring) both; }
@@ -1672,6 +1686,7 @@ function renderSections() {
       txt.appendChild(el("div", { class: "req-name", text: teamLabel(fromTeam) + " quiere intercambiar" }));
       txt.appendChild(el("div", { class: "req-team", text: `Te pide: ${partLabel(s.to_part_id)} · Te da: ${partLabel(s.from_part_id)}` }));
       row.appendChild(txt);
+      row.appendChild(el("button", { class: "icon-btn", title: "Ver detalles", html: ICON.doc({ size: 16 }), onclick: () => openSwapDetails(partById(s.from_part_id), partById(s.to_part_id)) }));
       row.appendChild(el("button", { class: "icon-btn req-ok", title: "Aceptar", html: ICON.check({ size: 18 }), onclick: () => acceptSwap(s) }));
       row.appendChild(el("button", { class: "icon-btn req-no", title: "Rechazar", html: ICON.close({ size: 16 }), onclick: () => declineSwap(s) }));
       rq.appendChild(row);
@@ -1683,6 +1698,7 @@ function renderSections() {
       txt.appendChild(el("div", { class: "req-name", text: "Pediste a " + teamLabel(toTeam) }));
       txt.appendChild(el("div", { class: "req-team", text: `Quieres: ${partLabel(s.to_part_id)} · Ofreces: ${partLabel(s.from_part_id)} · pendiente` }));
       row.appendChild(txt);
+      row.appendChild(el("button", { class: "icon-btn", title: "Ver detalles", html: ICON.doc({ size: 16 }), onclick: () => openSwapDetails(partById(s.to_part_id), partById(s.from_part_id)) }));
       row.appendChild(el("button", { class: "icon-btn req-no", title: "Cancelar", html: ICON.close({ size: 16 }), onclick: () => declineSwap(s) }));
       rq.appendChild(row);
     });
@@ -1779,9 +1795,43 @@ function confirmSwap(fromPart, toPart) {
     modal.appendChild(el("h2", { text: "Solicitar intercambio" }));
     modal.appendChild(el("p", { class: "modal-sub", html: `Ofreces <b>${escapeHtml(fromPart.title)}</b> a cambio de <b>${escapeHtml(toPart.title)}</b> de ${escapeHtml(teamLabel(toTeam))}. El otro equipo debe aceptar.` }));
     const stack = el("div", { class: "stack" });
+    stack.appendChild(el("button", { class: "modal-btn ghost", html: ICON.doc({ size: 18 }) + " Ver detalles de las partes", onclick: () => openSwapDetails(toPart, fromPart) }));
     stack.appendChild(el("button", { class: "modal-btn primary", html: ICON.check({ size: 18 }) + " Enviar solicitud", onclick: () => { close(); doRequestSwap(fromPart, toPart); } }));
     stack.appendChild(el("button", { class: "modal-btn ghost", text: "Cancelar", onclick: close }));
     modal.appendChild(stack);
+  });
+}
+
+// Detalle completo de las dos partes de un intercambio (recibes / entregas)
+function partDetailBlock(p, headLabel, headColor) {
+  const box = el("div", { class: "swap-det" });
+  box.appendChild(el("div", { class: "swap-det-head", style: { color: headColor }, text: headLabel }));
+  box.appendChild(el("div", { class: "swap-det-title", text: p.title || "(sin título)" }));
+  if (p.description) box.appendChild(el("div", { class: "swap-det-desc", text: p.description }));
+  if (Array.isArray(p.equipment) && p.equipment.length) {
+    const ch = el("div", { class: "chooser", style: { marginTop: "8px" } });
+    p.equipment.forEach(eq => ch.appendChild(el("span", { class: "chip", html: '<span class="cdot"></span>' + escapeHtml(eq) })));
+    box.appendChild(ch);
+  }
+  if (Array.isArray(p.steps) && p.steps.length) {
+    box.appendChild(el("div", { class: "swap-det-sub", text: p.steps.length + " paso(s) detallado(s):" }));
+    const ol = el("ol", { class: "swap-steps" });
+    p.steps.forEach(s => ol.appendChild(el("li", { text: (s && s.instruction) ? s.instruction : String(s) })));
+    box.appendChild(ol);
+  }
+  return box;
+}
+async function openSwapDetails(receivePart, givePart) {
+  const { data, error } = await supabase.from("parts").select("*").in("id", [receivePart.id, givePart.id]);
+  if (error) { logErr("Detalles", error); return; }
+  const byId = {}; (data || []).forEach(p => { byId[p.id] = p; });
+  const rec = byId[receivePart.id] || receivePart, giv = byId[givePart.id] || givePart;
+  openModal((modal, close) => {
+    modal.appendChild(el("h2", { text: "Detalles del intercambio" }));
+    modal.appendChild(el("p", { class: "modal-sub", text: "Compara qué recibes y qué entregas antes de decidir." }));
+    modal.appendChild(partDetailBlock(rec, "↓ Recibes esta parte", "oklch(42% 0.1 165)"));
+    modal.appendChild(partDetailBlock(giv, "↑ Entregas esta parte", "oklch(50% 0.16 28)"));
+    modal.appendChild(el("button", { class: "btn-sm ghost", style: { marginTop: "16px", width: "100%" }, text: "Cerrar", onclick: close }));
   });
 }
 
@@ -1834,7 +1884,8 @@ function playVolcanoReveal() {
       const delay = Math.min(3200 + state.sectionParts.length * 160, 5200);
       setTimeout(() => {
         grid.classList.add("dim");
-        const spot = el("div", { class: "team-spotlight" });
+        back.appendChild(el("div", { class: "spot-scrim" }));
+        const spot = el("div", { class: "team-spotlight tray" });
         spot.appendChild(el("div", { class: "spot-label", text: myParts.length > 1 ? "Tus secciones · " + teamLabel(mt) : "Tu sección · " + teamLabel(mt) }));
         const sg = el("div", { class: "bubble-grid" });
         myParts.forEach(p => sg.appendChild(partBubbleNode(p, { big: true })));
@@ -1969,6 +2020,7 @@ function playBasketReveal() {
       const delay = Math.min(3200 + state.teams.length * 180, 5200);
       setTimeout(() => {
         grid.classList.add("dim");
+        back.appendChild(el("div", { class: "spot-scrim" }));
         const spot = el("div", { class: "team-spotlight" });
         spot.appendChild(el("div", { class: "spot-label", text: "Tu equipo" }));
         spot.appendChild(teamCardNode(mine, { big: true }));
@@ -2229,45 +2281,77 @@ function fileToBase64(file) {
     reader.readAsDataURL(file);
   });
 }
-// Cargador "redactando el reporte": tablilla con hoja + pluma escribiendo (estilo línea como el matraz).
-function clipboardHTML() {
-  const tops = [16, 32, 48, 64, 80, 96], widths = [100, 84, 94, 70, 90, 58];
-  let lines = "";
-  for (let i = 0; i < tops.length; i++)
-    lines += `<span class="cl-line" style="top:${tops[i]}px;width:${widths[i]}%;animation-delay:${(i * 0.34).toFixed(2)}s"></span>`;
-  const pen = '<div class="clip-pen-wrap"><svg class="clip-pen" viewBox="0 0 40 40" aria-hidden="true">' +
+// Cargador "redactando el reporte": tablilla con hoja + pluma. La pluma escribe renglón
+// por renglón y, al llegar al final, pasa la página naturalmente y sigue escribiendo.
+const CLIP_LINES = [{ t: 16, w: 100 }, { t: 33, w: 84 }, { t: 50, w: 94 }, { t: 67, w: 70 }, { t: 84, w: 90 }, { t: 101, w: 58 }];
+const CLIP_STEP = 0.56;                              // s por renglón (sincroniza pluma y líneas)
+const CLIP_WRITE_MS = CLIP_LINES.length * CLIP_STEP * 1000;
+function clipPenHTML() {
+  return '<div class="clip-pen-wrap"><svg class="clip-pen" viewBox="0 0 40 40" aria-hidden="true">' +
     '<path d="M12 28 L30 10 q3 -3 6 0 q3 3 0 6 L18 34 Z" fill="oklch(80% 0.114 19.571)" stroke="oklch(40% 0.08 52)" stroke-width="2" stroke-linejoin="round"/>' +
     '<path d="M12 28 L18 34 L9 37 Z" fill="oklch(40% 0.08 52)"/>' +
     '<line x1="29" y1="13" x2="33" y2="17" stroke="oklch(40% 0.08 52)" stroke-width="2" stroke-linecap="round"/>' +
     '</svg></div>';
-  return '<div class="clip-back"></div><div class="clip-clip"></div>' +
-    '<div class="clip-papers"><div class="clip-paper back"></div>' +
-    '<div class="clip-paper front">' + lines + pen + '</div></div>';
+}
+function startClipWriting(board) {
+  const wrap = board.querySelector(".clip-papers");
+  let stopped = false, timer = null;
+  function makePage() {
+    const p = el("div", { class: "clip-paper writing" });
+    CLIP_LINES.forEach((L, i) => {
+      const s = el("span", { class: "cl-line" });
+      s.style.top = L.t + "px"; s.style.width = L.w + "%"; s.style.animationDelay = (i * CLIP_STEP).toFixed(2) + "s";
+      p.appendChild(s);
+    });
+    p.insertAdjacentHTML("beforeend", clipPenHTML());
+    return p;
+  }
+  function cycle() {
+    if (stopped) return;
+    const page = makePage();
+    wrap.appendChild(page);
+    timer = setTimeout(() => {
+      if (stopped) return;
+      page.classList.add("turning");              // pasa la hoja
+      setTimeout(() => page.remove(), 780);
+      cycle();                                     // hoja nueva debajo, sigue escribiendo
+    }, CLIP_WRITE_MS + 280);
+  }
+  cycle();
+  return {
+    wrap,
+    stop() { stopped = true; if (timer) clearTimeout(timer); },
+    topPage() { const w = wrap.querySelectorAll(".clip-paper.writing"); return w[w.length - 1] || null; },
+  };
 }
 function showLoading(text) {
   const back = el("div", { class: "modal-back" });
   const modal = el("div", { class: "modal center" });
-  const board = el("div", { class: "clip-board", html: clipboardHTML() });
+  const board = el("div", { class: "clip-board", html: '<div class="clip-back"></div><div class="clip-clip"></div><div class="clip-papers"></div>' });
   modal.appendChild(el("div", { class: "clip-loader" }, board));
   const heading = el("h2", { text: "Un momento…", style: { marginTop: "16px" } });
   const sub = el("p", { class: "modal-sub", text: text });
   modal.appendChild(heading); modal.appendChild(sub);
   back.appendChild(modal);
   document.body.appendChild(back);
-  // finish() cierra; finish({success:true, label, sub}) hace el "volteo de página" y celebra.
+  const ctrl = startClipWriting(board);
+  // finish() cierra; finish({success:true, label, sub}) hace el "volteo de página" final y celebra.
   return function finish(opts) {
     opts = opts || {};
+    ctrl.stop();
     if (!opts.success) { back.remove(); return; }
-    const backPage = board.querySelector(".clip-paper.back");
-    backPage.innerHTML = '<div class="clip-check"><svg viewBox="0 0 24 24"><path d="M5 12.5l4 4 10-10"/></svg></div>';
-    backPage.appendChild(el("div", { class: "clip-done-text", text: opts.label || "¡Laboratorio listo!" }));
+    const donePage = el("div", { class: "clip-paper donepage" });
+    donePage.innerHTML = '<div class="clip-check"><svg viewBox="0 0 24 24"><path d="M5 12.5l4 4 10-10"/></svg></div>';
+    donePage.appendChild(el("div", { class: "clip-done-text", text: opts.label || "¡Laboratorio listo!" }));
+    ctrl.wrap.insertBefore(donePage, ctrl.wrap.firstChild);     // queda debajo de la hoja actual
+    const top = ctrl.topPage(); if (top) { top.classList.add("turning"); setTimeout(() => top.remove(), 780); }
     board.classList.add("done");
     heading.textContent = "¡Listo!";
     sub.textContent = opts.sub || "Tu laboratorio está preparado.";
     const canvas = el("canvas", { class: "cele-confetti" });
     back.appendChild(canvas);
     const stop = confettiBurst(canvas, { count: 90, power: 9 });
-    setTimeout(() => { if (stop) stop(); back.style.transition = "opacity .35s"; back.style.opacity = "0"; setTimeout(() => back.remove(), 360); }, opts.hold || 1800);
+    setTimeout(() => { if (stop) stop(); back.style.transition = "opacity .35s"; back.style.opacity = "0"; setTimeout(() => back.remove(), 360); }, opts.hold || 1900);
   };
 }
 function importLabFromPdf() {
