@@ -1468,13 +1468,21 @@ function choosePhotoSource(part, opts = {}) {
     modal.appendChild(sub);
 
     const stack = el("div", { class: "stack" });
-    stack.appendChild(el("button", { class: "modal-btn primary", html: ICON.camera({ size: 18 }) + " Tomar foto", onclick: () => { close(); openNativeCamera(part); } }));
+    stack.appendChild(el("button", { class: "modal-btn primary", html: ICON.camera({ size: 18 }) + " Tomar foto", onclick: () => { close(); captureOpensFiles() ? openCamera(part) : openNativeCamera(part); } }));
     stack.appendChild(el("button", { class: "modal-btn ghost", html: ICON.image({ size: 18 }) + " Elegir de la galería", onclick: () => { close(); openGalleryPicker(part); } }));
     if (opts.allowSkip) stack.appendChild(el("button", { class: "modal-btn ghost", html: ICON.check({ size: 18 }) + " Solo marcar completada", onclick: close }));
     else stack.appendChild(el("button", { class: "modal-btn ghost", text: "Cancelar", onclick: close }));
     modal.appendChild(stack);
     modal.appendChild(el("button", { class: "cam-fallback-link", text: "¿No se abrió la cámara? Usar cámara integrada", onclick: () => { close(); openCamera(part); } }));
   });
+}
+
+// Navegadores que ignoran el atributo 'capture' y abren el explorador de
+// archivos en vez de la cámara (Comet de Perplexity, Opera). Para esos
+// enrutamos directo a la cámara integrada (getUserMedia).
+function captureOpensFiles() {
+  const ua = navigator.userAgent || "";
+  return /\bComet\b|OPR\/|OPiOS|OPT\/|Opera Mini|\bOpera\b/i.test(ua);
 }
 
 // Cámara NATIVA del teléfono (mejor enfoque y calidad). Algunos navegadores
