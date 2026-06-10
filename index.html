@@ -50,6 +50,12 @@
     mix-blend-mode: multiply; background-size: 180px;
   }
   #root { position: relative; z-index: 1; }
+  /* fondo animado: burbujas de elementos químicos + herramientas flotando */
+  .bgfx { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+  .bgfx canvas { position: absolute; inset: 0; }
+  .bgfx-tool { position: absolute; color: oklch(40% 0.06 52 / .10); animation: bgfxFloat 13s ease-in-out infinite; }
+  .bgfx-tool svg { width: 100%; height: 100%; }
+  @keyframes bgfxFloat { 0%,100% { transform: translateY(0) rotate(-5deg); } 50% { transform: translateY(-20px) rotate(5deg); } }
   .app { max-width: 640px; margin: 0 auto; }
 
   /* Header */
@@ -1695,10 +1701,142 @@ function onRealtimeChange() {
 }
 
 /* ============================================================= *
+ *  FONDO ANIMADO — burbujas de elementos que rebotan y se fusionan
+ * ============================================================= */
+function initBackgroundFX() {
+  const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const host = document.createElement("div");
+  host.className = "bgfx";
+  const canvas = document.createElement("canvas");
+  host.appendChild(canvas);
+  document.body.insertBefore(host, document.body.firstChild);
+
+  // herramientas de laboratorio flotando en las esquinas
+  const molecule = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="6" cy="7" r="2.3"/><circle cx="17.5" cy="6" r="2.3"/><circle cx="12" cy="16.5" r="2.3"/><path d="M8 8.2l3 6.4M15.4 7.2l-4.2 8"/></svg>';
+  const tools = [
+    { html: ICON.flask(), css: "top:7%;left:5%;width:52px;height:52px;animation-delay:0s" },
+    { html: ICON.beaker(), css: "top:13%;right:6%;width:62px;height:62px;animation-delay:-3.5s" },
+    { html: molecule, css: "bottom:9%;left:8%;width:50px;height:50px;animation-delay:-7s" },
+    { html: ICON.flask(), css: "bottom:14%;right:7%;width:44px;height:44px;animation-delay:-10s" },
+  ];
+  host.insertAdjacentHTML("beforeend", tools.map(t => `<span class="bgfx-tool" style="${t.css}">${t.html}</span>`).join(""));
+
+  const ctx = canvas.getContext("2d");
+  let W = 0, H = 0;
+  function resize() {
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    W = window.innerWidth; H = window.innerHeight;
+    canvas.width = W * dpr; canvas.height = H * dpr;
+    canvas.style.width = W + "px"; canvas.style.height = H + "px";
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  resize();
+  window.addEventListener("resize", resize);
+
+  const EL = { // hue, saturación por elemento
+    H: { h: 8, s: 75 }, O: { h: 205, s: 70 }, C: { h: 222, s: 16 },
+    N: { h: 265, s: 50 }, Na: { h: 35, s: 78 }, Cl: { h: 140, s: 48 }, _c: { h: 14, s: 64 },
+  };
+  const ATOMS = ["H", "O", "C", "N", "Na", "Cl"];
+  const RULES = { "H|O": "H₂O", "Cl|Na": "NaCl", "Cl|H": "HCl", "C|O": "CO₂", "H|N": "NH₃", "C|H": "CH₄" };
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  const isMobile = W < 640;
+  const TARGET = isMobile ? 7 : 13;
+  const parts = [], pops = [];
+
+  function spawn(x, y) {
+    parts.push({ x: x == null ? rnd(40, W - 40) : x, y: y == null ? rnd(40, H - 40) : y,
+      vx: rnd(-0.45, 0.45), vy: rnd(-0.45, 0.45), r: rnd(16, 24),
+      sym: ATOMS[Math.floor(Math.random() * ATOMS.length)], kind: "atom" });
+  }
+  for (let i = 0; i < TARGET; i++) spawn();
+  function pop(x, y) { pops.push({ x, y, t: 0 }); }
+
+  function draw(p) {
+    const e = p.kind === "compound" ? EL._c : (EL[p.sym] || EL._c);
+    const g = ctx.createRadialGradient(p.x - p.r * 0.32, p.y - p.r * 0.32, p.r * 0.1, p.x, p.y, p.r);
+    g.addColorStop(0, `hsl(${e.h} ${e.s}% 84%)`);
+    g.addColorStop(1, `hsl(${e.h} ${e.s}% 62%)`);
+    ctx.globalAlpha = p.kind === "compound" ? 0.66 : 0.5;
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fillStyle = g; ctx.fill();
+    ctx.globalAlpha = 0.5; ctx.lineWidth = 1.5; ctx.strokeStyle = `hsl(${e.h} ${Math.min(60, e.s)}% 48%)`; ctx.stroke();
+    ctx.globalAlpha = p.kind === "compound" ? 0.95 : 0.85;
+    const fs = p.sym.length <= 2 ? p.r * 0.82 : (p.sym.length === 3 ? p.r * 0.62 : p.r * 0.5);
+    ctx.fillStyle = `hsl(${e.h} ${e.s}% 26%)`;
+    ctx.font = `700 ${Math.round(fs)}px -apple-system, system-ui, "Segoe UI", sans-serif`;
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText(p.sym, p.x, p.y + 1);
+    ctx.globalAlpha = 1;
+  }
+
+  let running = !document.hidden, raf = 0;
+  function frame() {
+    ctx.clearRect(0, 0, W, H);
+    for (const p of parts) {
+      p.x += p.vx; p.y += p.vy;
+      p.vx += rnd(-0.012, 0.012); p.vy += rnd(-0.012, 0.012);
+      const sp = Math.hypot(p.vx, p.vy); if (sp > 0.75) { p.vx = p.vx / sp * 0.75; p.vy = p.vy / sp * 0.75; }
+      if (p.x < p.r) { p.x = p.r; p.vx = Math.abs(p.vx); }
+      if (p.x > W - p.r) { p.x = W - p.r; p.vx = -Math.abs(p.vx); }
+      if (p.y < p.r) { p.y = p.r; p.vy = Math.abs(p.vy); }
+      if (p.y > H - p.r) { p.y = H - p.r; p.vy = -Math.abs(p.vy); }
+      if (p.kind === "compound") p.life--;
+    }
+    for (let i = 0; i < parts.length; i++) {
+      for (let j = i + 1; j < parts.length; j++) {
+        const a = parts[i], b = parts[j];
+        const dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy), min = a.r + b.r;
+        if (d < min && d > 0.01) {
+          if (a.kind === "atom" && b.kind === "atom") {
+            const comp = RULES[[a.sym, b.sym].sort().join("|")];
+            if (comp) {
+              const nx = (a.x + b.x) / 2, ny = (a.y + b.y) / 2;
+              parts.splice(j, 1); parts.splice(i, 1);
+              parts.push({ x: nx, y: ny, vx: (a.vx + b.vx) / 2, vy: (a.vy + b.vy) / 2, r: Math.min(34, (a.r + b.r) * 0.72), sym: comp, kind: "compound", life: rnd(360, 600) });
+              pop(nx, ny); i--; break;
+            }
+          }
+          const nx = dx / d, ny = dy / d, ov = (min - d) / 2;
+          a.x -= nx * ov; a.y -= ny * ov; b.x += nx * ov; b.y += ny * ov;
+          const va = a.vx * nx + a.vy * ny, vb = b.vx * nx + b.vy * ny, diff = vb - va;
+          a.vx += diff * nx; a.vy += diff * ny; b.vx -= diff * nx; b.vy -= diff * ny;
+        }
+      }
+    }
+    for (let i = parts.length - 1; i >= 0; i--) {
+      if (parts[i].kind === "compound" && parts[i].life <= 0) {
+        pop(parts[i].x, parts[i].y);
+        const px = parts[i].x, py = parts[i].y;
+        parts.splice(i, 1); spawn(px, py); spawn(px, py);
+      }
+    }
+    while (parts.length < TARGET) spawn();
+    for (let i = pops.length - 1; i >= 0; i--) {
+      const q = pops[i]; q.t += 1;
+      ctx.globalAlpha = Math.max(0, 0.5 - q.t / 56); ctx.lineWidth = 2;
+      ctx.strokeStyle = "hsl(14 60% 55%)";
+      ctx.beginPath(); ctx.arc(q.x, q.y, q.t * 1.3, 0, Math.PI * 2); ctx.stroke();
+      ctx.globalAlpha = 1;
+      if (q.t > 28) pops.splice(i, 1);
+    }
+    for (const p of parts) draw(p);
+    if (running) raf = requestAnimationFrame(frame);
+  }
+
+  if (reduce) { frame(); return; } // un solo cuadro estático
+  raf = requestAnimationFrame(frame);
+  document.addEventListener("visibilitychange", () => {
+    running = !document.hidden;
+    if (running) raf = requestAnimationFrame(frame); else cancelAnimationFrame(raf);
+  });
+}
+
+/* ============================================================= *
  *  BOOT
  * ============================================================= */
-console.log("%cBitácora de Lab — build 2026-06-09-realtime", "color:#d76d5e;font-weight:bold");
+console.log("%cBitácora de Lab — build 2026-06-09-bgfx", "color:#d76d5e;font-weight:bold");
 render();
+initBackgroundFX();
 // onAuthStateChange dispara INITIAL_SESSION al cargar y llama a applySession.
 </script>
 </body>
