@@ -2478,6 +2478,7 @@ function initBackgroundFX() {
   function frame() {
     ctx.clearRect(0, 0, W, H);
     for (const p of parts) {
+      if (p.held) continue; // pieza arrastrada: la fija el puntero
       p.x += p.vx; p.y += p.vy;
       p.vx += rnd(-0.012, 0.012); p.vy += rnd(-0.012, 0.012);
       const sp = Math.hypot(p.vx, p.vy); if (sp > 0.75) { p.vx = p.vx / sp * 0.75; p.vy = p.vy / sp * 0.75; }
@@ -2492,7 +2493,7 @@ function initBackgroundFX() {
         const a = parts[i], b = parts[j];
         const dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy), min = a.r + b.r;
         if (d < min && d > 0.01) {
-          if (a.kind === "atom" && b.kind === "atom") {
+          if (a.kind === "atom" && b.kind === "atom" && !a.held && !b.held) {
             const comp = RULES[[a.sym, b.sym].sort().join("|")];
             if (comp) {
               const nx = (a.x + b.x) / 2, ny = (a.y + b.y) / 2;
@@ -2502,9 +2503,12 @@ function initBackgroundFX() {
             }
           }
           const nx = dx / d, ny = dy / d, ov = (min - d) / 2;
-          a.x -= nx * ov; a.y -= ny * ov; b.x += nx * ov; b.y += ny * ov;
+          // la pieza arrastrada no se desplaza ni cambia su velocidad; sí empuja a las demás
+          if (!a.held) { a.x -= nx * ov; a.y -= ny * ov; }
+          if (!b.held) { b.x += nx * ov; b.y += ny * ov; }
           const va = a.vx * nx + a.vy * ny, vb = b.vx * nx + b.vy * ny, diff = vb - va;
-          a.vx += diff * nx; a.vy += diff * ny; b.vx -= diff * nx; b.vy -= diff * ny;
+          if (!a.held) { a.vx += diff * nx; a.vy += diff * ny; }
+          if (!b.held) { b.vx -= diff * nx; b.vy -= diff * ny; }
         }
       }
     }
@@ -2528,7 +2532,63 @@ function initBackgroundFX() {
     if (running) raf = requestAnimationFrame(frame);
   }
 
-  if (reduce) { frame(); return; } // un solo cuadro estático
+  // redibujo estático (para modo "reduce" mientras se arrastra)
+  function redraw() {
+    ctx.clearRect(0, 0, W, H);
+    for (const p of parts) draw(p);
+  }
+
+  /* ---- Arrastrar burbujas (mouse + táctil) ---- */
+  // toma la burbuja más arriba (última dibujada) bajo el puntero
+  function hitTest(px, py) {
+    for (let i = parts.length - 1; i >= 0; i--) {
+      const p = parts[i], dx = px - p.x, dy = py - p.y, rr = p.r + 8;
+      if (dx * dx + dy * dy <= rr * rr) return p;
+    }
+    return null;
+  }
+  let drag = null;
+  function onMove(e) {
+    if (!drag) return;
+    e.preventDefault();                       // evita scroll/selección mientras arrastras
+    const nx = Math.max(drag.r, Math.min(W - drag.r, e.clientX));
+    const ny = Math.max(drag.r, Math.min(H - drag.r, e.clientY));
+    drag.vx = nx - drag.x; drag.vy = ny - drag.y;   // impulso al soltar
+    drag.x = nx; drag.y = ny;
+    if (reduce || !running) redraw();
+  }
+  function onUp() {
+    if (drag) {
+      drag.held = false;
+      const sp = Math.hypot(drag.vx, drag.vy);       // limita el "fling"
+      if (sp > 4) { drag.vx = drag.vx / sp * 4; drag.vy = drag.vy / sp * 4; }
+      drag = null;
+    }
+    document.body.style.cursor = "";
+    window.removeEventListener("pointermove", onMove);
+    window.removeEventListener("pointerup", onUp);
+    window.removeEventListener("pointercancel", onUp);
+  }
+  function onDown(e) {
+    if (e.pointerType === "mouse" && e.button !== 0) return;   // solo clic izquierdo
+    // solo iniciar sobre el fondo vacío (no robar toques/scroll del contenido de la app)
+    const t = e.target;
+    const onBg = t === document.body || t === document.documentElement ||
+      (t.id === "root") || (t.classList && (t.classList.contains("app") || t.classList.contains("bgfx")));
+    if (!onBg) return;
+    const p = hitTest(e.clientX, e.clientY);
+    if (!p) return;
+    drag = p; p.held = true; p.vx = 0; p.vy = 0;
+    document.body.style.cursor = "grabbing";
+    window.addEventListener("pointermove", onMove, { passive: false });
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onUp);
+    e.preventDefault();
+    if (reduce || !running) redraw();
+  }
+  window.addEventListener("pointerdown", onDown, { passive: false });
+
+  if (reduce) { frame(); return; } // un solo cuadro estático (pero las burbujas siguen siendo arrastrables)
   raf = requestAnimationFrame(frame);
   document.addEventListener("visibilitychange", () => {
     running = !document.hidden;
