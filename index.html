@@ -503,6 +503,52 @@
   .team-spotlight .team-card { box-shadow: 0 0 0 2px var(--accent-active), 0 24px 60px -18px oklch(40% 0.1 45 / .6); }
   .team-spotlight .cele-btn { margin: 0 auto; }
 
+  /* ===== Secciones ===== */
+  .lab-select { margin: 0 2px 12px; }
+  .lab-select select { appearance: none; background-image: none; cursor: pointer; }
+  .sec-admin-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 0 2px 14px; }
+  .sec-hint { font-size: 12px; color: oklch(54% 0.05 58); font-family: var(--meta-font); }
+  .sec-list { display: flex; flex-direction: column; gap: 10px; }
+  .sec-row { display: flex; align-items: center; gap: 12px; background: var(--surface); border: var(--border) solid var(--hair); border-radius: var(--radius-box); box-shadow: var(--shadow-card); padding: 12px 14px; }
+  .sec-row.mine { border-color: var(--accent-active); box-shadow: 0 0 0 1.5px var(--accent-active), var(--shadow-card); }
+  .sec-num { width: 28px; height: 28px; flex: none; border-radius: 8px; background: var(--surface-2); border: 1.5px solid var(--hair); display: grid; place-items: center; font-size: 13px; font-weight: 700; color: oklch(48% 0.06 56); font-variant-numeric: tabular-nums; }
+  .sec-info { flex: 1; min-width: 0; }
+  .sec-title { font-size: 14.5px; font-weight: 650; color: var(--base-content); line-height: 1.3; }
+  .sec-team { display: flex; align-items: center; gap: 7px; margin-top: 4px; }
+  .sec-el { width: 24px; height: 24px; flex: none; border-radius: 7px; display: grid; place-items: center; color: #fff; font-size: 11px; font-weight: 800; box-shadow: inset 0 1px 0 oklch(100% 0 0 /.35); }
+  .sec-team-name { font-size: 12.5px; font-weight: 600; color: oklch(48% 0.06 56); }
+
+  /* burbujas de parte (revelado) */
+  .bubble-grid { display: flex; flex-wrap: wrap; gap: 18px 16px; justify-content: center; }
+  .pb-item { display: flex; flex-direction: column; align-items: center; gap: 7px; width: 120px; animation: popIn .4s var(--ease-spring) both; }
+  .part-bubble { position: relative; width: 92px; height: 92px; border-radius: 50%; display: grid; place-items: center; color: #fff;
+    box-shadow: inset 0 2px 4px oklch(100% 0 0 / .4), 0 12px 26px -10px oklch(40% 0.1 45 / .6); }
+  .pb-item.big .part-bubble { width: 120px; height: 120px; }
+  .part-bubble .pb-num { font-size: 32px; font-weight: 850; letter-spacing: -0.02em; text-shadow: 0 1px 3px oklch(30% 0.08 40 / .45); }
+  .pb-item.big .part-bubble .pb-num { font-size: 42px; }
+  .part-bubble .pb-el { position: absolute; right: -3px; bottom: -3px; width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; font-size: 12px; font-weight: 800; color: #fff; border: 2.5px solid var(--surface); box-shadow: 0 2px 6px -2px oklch(40% 0.08 50 / .5); }
+  .pb-title { font-size: 12px; font-weight: 650; color: oklch(34% 0.09 48); text-align: center; line-height: 1.25; }
+  .pb-team { font-size: 11px; font-weight: 600; color: oklch(52% 0.05 58); font-family: var(--meta-font); }
+  .pb-item.mine .part-bubble { outline: 3px solid var(--accent-active); outline-offset: 3px; }
+
+  /* ===== Volcán animado ===== */
+  .volcano-wrap { position: relative; display: grid; place-items: center; }
+  .volcano-svg { width: min(70vw, 280px); height: auto; transform-origin: center 80%; }
+  .volcano-svg.vs1 { animation: vShake1 .6s ease-in-out infinite; }
+  .volcano-svg.vs2 { animation: vShake2 .3s ease-in-out infinite; }
+  .volcano-svg.vs3 { animation: vShake3 .11s linear infinite; }
+  @keyframes vShake1 { 0%,100% { transform: translateX(-1px); } 50% { transform: translateX(1px); } }
+  @keyframes vShake2 { 0%,100% { transform: translate(-2px,0) rotate(-.6deg); } 50% { transform: translate(2px,0) rotate(.6deg); } }
+  @keyframes vShake3 { 0% { transform: translate(-3px,1px) rotate(-1.1deg); } 50% { transform: translate(3px,-1px) rotate(1.1deg); } 100% { transform: translate(-3px,1px) rotate(-1.1deg); } }
+  .v-line { fill: none; stroke: oklch(40% 0.08 52); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+  .v-vein { fill: none; stroke: oklch(40% 0.08 52 / .5); stroke-width: 3; stroke-linecap: round; }
+  .v-lava { transform-box: fill-box; animation: vLava 1.5s ease-in-out infinite; }
+  @keyframes vLava { 0%,100% { transform: translateY(2px); } 50% { transform: translateY(-3px); } }
+  .volcano-svg.vs3 .v-lava { filter: brightness(1.25) saturate(1.2); }
+  .v-bub { fill: oklch(96% 0.06 65 / .9); transform-box: fill-box; animation: flBub 1.4s ease-in infinite; }
+  .v-bub.b2 { animation-delay: .5s; } .v-bub.b3 { animation-delay: .9s; }
+  .volcano-svg.vs2 .v-bub { animation-duration: 1s; } .volcano-svg.vs3 .v-bub { animation-duration: .6s; }
+
   /* ===== Onda al hacer clic ===== */
   .click-ripple { position: fixed; z-index: 95; width: 20px; height: 20px; margin: -10px 0 0 -10px; border-radius: 50%;
     pointer-events: none; background: var(--rc); border: 2px solid var(--rc);
@@ -624,6 +670,10 @@ const state = {
   teams: [],                // [ {id, element_symbol, element_name, created_at} ]
   teamMembers: [],          // [ {team_id, user_id} ]
   joinRequests: [],         // [ {id, team_id, user_id, status} ] (solo 'pending')
+  sectionLabId: null,       // lab seleccionado en la pestaña Secciones
+  sectionParts: [],         // partes del lab seleccionado
+  partTeam: {},             // { part_id: team_id }
+  swaps: [],                // solicitudes de intercambio pendientes (de este lab)
 };
 
 const isAdmin = () => state.profile && state.profile.role === "admin";
@@ -734,6 +784,7 @@ async function applySession(session) {
     unsubscribeRealtime();
     state.profile = null; state.labs = []; state.parts = []; state.currentLabId = null;
     state.teams = []; state.teamMembers = []; state.joinRequests = []; state.tab = "labs";
+    state.sectionLabId = null; state.sectionParts = []; state.partTeam = {}; state.swaps = [];
     state.view = "auth";
   }
   render();
@@ -1019,6 +1070,98 @@ async function clearAllTeams() {
   toast("Equipos eliminados");
 }
 
+/* ============================================================= *
+ *  SECCIONES — asignación de partes a equipos + intercambios
+ * ============================================================= */
+const teamById = id => state.teams.find(t => t.id === id) || null;
+// solicitudes dirigidas a MI equipo (las que debo aceptar/rechazar)
+function incomingSwaps() {
+  const mt = myTeam(); if (!mt) return [];
+  return state.swaps.filter(s => state.partTeam[s.to_part_id] === mt.id);
+}
+function outgoingSwaps() {
+  const mt = myTeam(); if (!mt) return [];
+  return state.swaps.filter(s => state.partTeam[s.from_part_id] === mt.id);
+}
+
+async function loadSections(labId) {
+  if (!labId) { state.sectionParts = []; state.partTeam = {}; state.swaps = []; return; }
+  const { data: parts } = await supabase.from("parts").select("id, title, position, lab_id")
+    .eq("lab_id", labId).order("position", { ascending: true }).order("created_at", { ascending: true });
+  state.sectionParts = parts || [];
+  state.partTeam = {}; state.swaps = [];
+  const ids = state.sectionParts.map(p => p.id);
+  if (!ids.length) return;
+  const [paRes, srRes] = await Promise.all([
+    supabase.from("part_assignments").select("part_id, team_id").in("part_id", ids),
+    supabase.from("swap_requests").select("*").eq("status", "pending"),
+  ]);
+  (paRes.data || []).forEach(r => { if (r.team_id) state.partTeam[r.part_id] = r.team_id; });
+  state.swaps = (srRes.data || []).filter(s => ids.includes(s.from_part_id) || ids.includes(s.to_part_id));
+}
+
+async function openSections() {
+  state.tab = "sections";
+  if (!state.sectionLabId && state.labs.length) state.sectionLabId = state.labs[0].id;
+  render();
+  if (state.sectionLabId) { await loadSections(state.sectionLabId); if (state.tab === "sections") render(); }
+}
+async function selectSectionLab(id) {
+  state.sectionLabId = id; state.sectionParts = []; state.partTeam = {}; state.swaps = [];
+  render();
+  await loadSections(id); if (state.tab === "sections") render();
+}
+
+// Admin: reparte partes -> equipos (round-robin) y dispara el volcán.
+async function randomizeSections(labId) {
+  if (!state.teams.length) { toast("Primero forma los equipos", "err"); return; }
+  if (state.sectionLabId !== labId) await loadSections(labId);
+  const parts = state.sectionParts;
+  if (!parts.length) { toast("Este laboratorio no tiene partes", "err"); return; }
+  const teams = shuffled(state.teams);
+  const rows = parts.map((p, i) => ({ part_id: p.id, team_id: teams[i % teams.length].id }));
+  await supabase.from("swap_requests").delete().in("from_part_id", parts.map(p => p.id));
+  await supabase.from("part_assignments").delete().in("part_id", parts.map(p => p.id));
+  const ins = await supabase.from("part_assignments").insert(rows);
+  if (ins.error) { logErr("Secciones", ins.error); return; }
+  await loadSections(labId);
+  if (state.view === "app") render();
+  playVolcanoReveal();
+  if (realtimeChannel) { try { realtimeChannel.send({ type: "broadcast", event: "sections_assigned", payload: { labId } }); } catch (_) {} }
+}
+
+// Admin: reasigna manualmente una parte a un equipo (o la deja sin equipo).
+async function manualAssign(part, teamId) {
+  const { error } = await supabase.from("part_assignments").upsert({ part_id: part.id, team_id: teamId || null });
+  if (error) { logErr("Reasignar", error); return; }
+  await loadSections(state.sectionLabId); render();
+  toast("Sección reasignada", "ok");
+}
+
+async function doRequestSwap(fromPart, toPart) {
+  const { error } = await supabase.rpc("request_section_swap", { p_from: fromPart.id, p_to: toPart.id });
+  if (error) { logErr("Intercambio", error); return; }
+  await loadSections(state.sectionLabId); render();
+  toast("Solicitud de intercambio enviada", "ok");
+}
+async function acceptSwap(req) {
+  // nombres para la celebración (antes de que cambie el estado)
+  const teamA = teamById(state.partTeam[req.from_part_id]);
+  const teamB = teamById(state.partTeam[req.to_part_id]);
+  const { error } = await supabase.rpc("accept_section_swap", { p_req: req.id });
+  if (error) { logErr("Intercambio", error); return; }
+  await loadSections(state.sectionLabId); render();
+  const payload = { a: teamLabel(teamA), b: teamLabel(teamB) };
+  celebrateSwap(payload);
+  if (realtimeChannel) { try { realtimeChannel.send({ type: "broadcast", event: "section_swapped", payload }); } catch (_) {} }
+}
+async function declineSwap(req) {
+  const { error } = await supabase.rpc("decline_section_swap", { p_req: req.id });
+  if (error) { logErr("Intercambio", error); return; }
+  await loadSections(state.sectionLabId); render();
+  toast("Intercambio rechazado");
+}
+
 async function togglePartDone(part) {
   const wasDone = !!part.completed_at;
   const fields = wasDone
@@ -1223,6 +1366,7 @@ function renderApp() {
   app.appendChild(renderHeader());
   app.appendChild(renderTabs());
   if (state.tab === "teams") app.appendChild(renderTeams());
+  else if (state.tab === "sections") app.appendChild(renderSections());
   else if (!state.currentLabId) app.appendChild(renderLabList());
   else app.appendChild(renderLabDetail());
   return app;
@@ -1230,15 +1374,17 @@ function renderApp() {
 
 function renderTabs() {
   const bar = el("div", { class: "tabbar" });
-  const pending = isAdmin() ? state.joinRequests.length : 0;
-  const mk = (id, label, icon, badge) => {
+  const pendingTeams = isAdmin() ? state.joinRequests.length : 0;
+  const pendingSwaps = incomingSwaps().length;
+  const mk = (id, label, icon, badge, onclick) => {
     const b = el("button", { class: "tab" + (state.tab === id ? " on" : ""), html: icon + `<span>${label}</span>`,
-      onclick: () => { if (state.tab !== id) { state.tab = id; render(); } } });
+      onclick: onclick || (() => { if (state.tab !== id) { state.tab = id; render(); } }) });
     if (badge) b.appendChild(el("span", { class: "tab-badge", text: String(badge) }));
     return b;
   };
   bar.appendChild(mk("labs", "Bitácora de Lab", ICON.list({ size: 16 })));
-  bar.appendChild(mk("teams", "Equipos", ICON.users({ size: 16 }), pending));
+  bar.appendChild(mk("teams", "Equipos", ICON.users({ size: 16 }), pendingTeams));
+  bar.appendChild(mk("sections", "Secciones", ICON.beaker({ size: 16 }), pendingSwaps, () => { if (state.tab !== "sections") openSections(); }));
   return bar;
 }
 
@@ -1425,6 +1571,277 @@ function openRoster() {
     modal.appendChild(actions);
     refreshSum();
   });
+}
+
+/* ============================================================= *
+ *  VISTA: SECCIONES
+ * ============================================================= */
+function partBubbleNode(part, opts) {
+  opts = opts || {};
+  const teamId = state.partTeam[part.id];
+  const team = teamById(teamId);
+  const idx = state.sectionParts.findIndex(p => p.id === part.id);
+  const mt = myTeam();
+  const mine = mt && teamId === mt.id;
+  const item = el("div", { class: "pb-item" + (mine ? " mine" : "") + (opts.big ? " big" : "") });
+  const sym = team ? team.element_symbol : null;
+  const col = team ? teamColor(sym) : "oklch(70% 0.02 90)";
+  const bubble = el("div", { class: "part-bubble" });
+  bubble.style.background = `radial-gradient(circle at 35% 30%, oklch(88% 0.07 ${elBySym(sym || "C").hue}), ${col})`;
+  bubble.appendChild(el("span", { class: "pb-num", text: String((idx >= 0 ? idx : part.position || 0) + 1) }));
+  if (team) bubble.appendChild(el("span", { class: "pb-el", style: { background: col }, text: sym }));
+  item.appendChild(bubble);
+  item.appendChild(el("div", { class: "pb-title", text: part.title }));
+  item.appendChild(el("div", { class: "pb-team", text: team ? teamLabel(team) : "Sin equipo" }));
+  return item;
+}
+
+function renderSections() {
+  const wrap = el("div");
+  const sec = el("div", { class: "section-row" });
+  sec.appendChild(el("h2", { text: "Secciones" }));
+  wrap.appendChild(sec);
+
+  if (!state.labs.length) {
+    wrap.appendChild(el("div", { class: "card" }, el("div", { class: "empty", html:
+      `<div class="e-ic">${ICON.beaker({ size: 26 })}</div><h3>No hay laboratorios</h3><p>Crea un laboratorio en la pestaña Bitácora.</p>` })));
+    return wrap;
+  }
+
+  // selector de laboratorio
+  const selWrap = el("div", { class: "lab-select" });
+  selWrap.appendChild(el("label", { class: "mlabel", style: { margin: "0 0 6px" }, text: "Laboratorio" }));
+  const sel = el("select", { class: "minput", onchange: e => selectSectionLab(e.target.value) });
+  state.labs.forEach(l => sel.appendChild(el("option", { value: l.id, text: l.name, selected: l.id === state.sectionLabId })));
+  selWrap.appendChild(sel);
+  wrap.appendChild(selWrap);
+
+  if (isAdmin()) {
+    const bar = el("div", { class: "sec-admin-bar" });
+    const hasParts = state.sectionParts.length > 0, hasTeams = state.teams.length > 0;
+    const btn = el("button", { class: "btn-sm", html: ICON.sparkle({ size: 15 }) + (Object.keys(state.partTeam).length ? " Volver a repartir" : " Repartir partes"),
+      disabled: !hasParts || !hasTeams, onclick: () => randomizeSections(state.sectionLabId) });
+    bar.appendChild(btn);
+    if (!hasTeams) bar.appendChild(el("span", { class: "sec-hint", text: "Forma equipos primero (pestaña Equipos)." }));
+    else if (!hasParts) bar.appendChild(el("span", { class: "sec-hint", text: "Este lab no tiene partes." }));
+    wrap.appendChild(bar);
+  }
+
+  // solicitudes de intercambio que involucran a mi equipo
+  const inc = incomingSwaps(), out = outgoingSwaps();
+  if (inc.length || out.length) {
+    const rq = el("div", { class: "card req-card" });
+    rq.appendChild(el("div", { class: "req-head", text: "Intercambios de sección" }));
+    const partById = id => state.sectionParts.find(p => p.id === id);
+    const partLabel = id => { const p = partById(id); const i = state.sectionParts.findIndex(x => x.id === id); return p ? `Parte ${i + 1} · ${p.title}` : "—"; };
+    inc.forEach(s => {
+      const fromTeam = teamById(state.partTeam[s.from_part_id]);
+      const row = el("div", { class: "req-row" });
+      const txt = el("div", { class: "req-txt" });
+      txt.appendChild(el("div", { class: "req-name", text: teamLabel(fromTeam) + " quiere intercambiar" }));
+      txt.appendChild(el("div", { class: "req-team", text: `Te pide: ${partLabel(s.to_part_id)} · Te da: ${partLabel(s.from_part_id)}` }));
+      row.appendChild(txt);
+      row.appendChild(el("button", { class: "icon-btn req-ok", title: "Aceptar", html: ICON.check({ size: 18 }), onclick: () => acceptSwap(s) }));
+      row.appendChild(el("button", { class: "icon-btn req-no", title: "Rechazar", html: ICON.close({ size: 16 }), onclick: () => declineSwap(s) }));
+      rq.appendChild(row);
+    });
+    out.forEach(s => {
+      const toTeam = teamById(state.partTeam[s.to_part_id]);
+      const row = el("div", { class: "req-row" });
+      const txt = el("div", { class: "req-txt" });
+      txt.appendChild(el("div", { class: "req-name", text: "Pediste a " + teamLabel(toTeam) }));
+      txt.appendChild(el("div", { class: "req-team", text: `Quieres: ${partLabel(s.to_part_id)} · Ofreces: ${partLabel(s.from_part_id)} · pendiente` }));
+      row.appendChild(txt);
+      row.appendChild(el("button", { class: "icon-btn req-no", title: "Cancelar", html: ICON.close({ size: 16 }), onclick: () => declineSwap(s) }));
+      rq.appendChild(row);
+    });
+    wrap.appendChild(rq);
+  }
+
+  if (!state.sectionParts.length) {
+    wrap.appendChild(el("div", { class: "card" }, el("div", { class: "empty", html:
+      `<div class="e-ic">${ICON.beaker({ size: 26 })}</div><h3>Sin partes</h3><p>Este laboratorio aún no tiene partes.</p>` })));
+    return wrap;
+  }
+
+  const mt = myTeam();
+  const list = el("div", { class: "sec-list" });
+  state.sectionParts.forEach((part, i) => {
+    const teamId = state.partTeam[part.id];
+    const team = teamById(teamId);
+    const mine = mt && teamId === mt.id;
+    const row = el("div", { class: "sec-row" + (mine ? " mine" : "") });
+    row.appendChild(el("span", { class: "sec-num", text: String(i + 1) }));
+    const info = el("div", { class: "sec-info" });
+    info.appendChild(el("div", { class: "sec-title", text: part.title }));
+    const teamLine = el("div", { class: "sec-team" });
+    if (team) {
+      teamLine.appendChild(el("span", { class: "sec-el", style: { background: teamColor(team.element_symbol) }, text: team.element_symbol }));
+      teamLine.appendChild(el("span", { class: "sec-team-name", text: teamLabel(team) }));
+    } else teamLine.appendChild(el("span", { class: "sec-team-name", text: "Sin equipo" }));
+    info.appendChild(teamLine);
+    row.appendChild(info);
+
+    if (isAdmin()) {
+      row.appendChild(el("button", { class: "link-btn", html: ICON.edit({ size: 14 }) + " Cambiar", onclick: () => openManualAssign(part) }));
+    } else if (mt && !mine && team) {
+      // miembro de un equipo puede pedir esta sección a cambio de una suya
+      row.appendChild(el("button", { class: "link-btn", html: ICON.sparkle({ size: 14 }) + " Pedir", onclick: () => openSwapRequest(part) }));
+    }
+    list.appendChild(row);
+  });
+  wrap.appendChild(list);
+  return wrap;
+}
+
+function openManualAssign(part) {
+  openModal((modal, close) => {
+    modal.appendChild(el("h2", { text: "Asignar sección" }));
+    modal.appendChild(el("p", { class: "modal-sub", text: part.title }));
+    const list = el("div", { class: "assign-list" });
+    const pick = async (teamId) => { close(); await manualAssign(part, teamId); };
+    state.teams.forEach(t => {
+      const on = state.partTeam[part.id] === t.id;
+      const item = el("button", { type: "button", class: "assign-item" + (on ? " on" : ""), onclick: () => pick(t.id) });
+      item.appendChild(el("span", { class: "ai-av", style: { background: teamColor(t.element_symbol), borderRadius: "9px" }, text: t.element_symbol }));
+      item.appendChild(el("span", { class: "ai-name", text: teamLabel(t) }));
+      item.appendChild(el("span", { class: "ai-check", html: ICON.check({ size: 13 }) }));
+      list.appendChild(item);
+    });
+    const none = el("button", { type: "button", class: "assign-item" + (!state.partTeam[part.id] ? " on" : ""), onclick: () => pick(null) });
+    none.appendChild(el("span", { class: "ai-av", style: { background: "oklch(70% 0.02 90)" }, html: ICON.close({ size: 14 }) }));
+    none.appendChild(el("span", { class: "ai-name", text: "Sin equipo" }));
+    none.appendChild(el("span", { class: "ai-check", html: ICON.check({ size: 13 }) }));
+    list.appendChild(none);
+    modal.appendChild(list);
+    modal.appendChild(el("button", { class: "btn-sm ghost", style: { marginTop: "14px", width: "100%" }, text: "Cancelar", onclick: close }));
+  });
+}
+
+// Miembro: pedir la sección "targetPart" ofreciendo una de las de su equipo
+function openSwapRequest(targetPart) {
+  const mt = myTeam();
+  if (!mt) { toast("No estás en un equipo", "err"); return; }
+  const myParts = state.sectionParts.filter(p => state.partTeam[p.id] === mt.id);
+  if (!myParts.length) { toast("Tu equipo no tiene una sección que ofrecer", "err"); return; }
+  if (myParts.length === 1) { confirmSwap(myParts[0], targetPart); return; }
+  openModal((modal, close) => {
+    modal.appendChild(el("h2", { text: "¿Qué sección ofreces?" }));
+    modal.appendChild(el("p", { class: "modal-sub", text: "Elige cuál de tus secciones darás a cambio de “" + targetPart.title + "”." }));
+    const list = el("div", { class: "assign-list" });
+    myParts.forEach(p => {
+      const i = state.sectionParts.findIndex(x => x.id === p.id);
+      const item = el("button", { type: "button", class: "assign-item", onclick: () => { close(); confirmSwap(p, targetPart); } });
+      item.appendChild(el("span", { class: "ai-av", style: { background: "var(--primary)" }, text: String(i + 1) }));
+      item.appendChild(el("span", { class: "ai-name", text: p.title }));
+      list.appendChild(item);
+    });
+    modal.appendChild(list);
+    modal.appendChild(el("button", { class: "btn-sm ghost", style: { marginTop: "14px", width: "100%" }, text: "Cancelar", onclick: close }));
+  });
+}
+function confirmSwap(fromPart, toPart) {
+  const toTeam = teamById(state.partTeam[toPart.id]);
+  openModal((modal, close) => {
+    modal.classList.add("center");
+    modal.appendChild(el("div", { class: "modal-ic", html: ICON.sparkle({ size: 26 }) }));
+    modal.appendChild(el("h2", { text: "Solicitar intercambio" }));
+    modal.appendChild(el("p", { class: "modal-sub", html: `Ofreces <b>${escapeHtml(fromPart.title)}</b> a cambio de <b>${escapeHtml(toPart.title)}</b> de ${escapeHtml(teamLabel(toTeam))}. El otro equipo debe aceptar.` }));
+    const stack = el("div", { class: "stack" });
+    stack.appendChild(el("button", { class: "modal-btn primary", html: ICON.check({ size: 18 }) + " Enviar solicitud", onclick: () => { close(); doRequestSwap(fromPart, toPart); } }));
+    stack.appendChild(el("button", { class: "modal-btn ghost", text: "Cancelar", onclick: close }));
+    modal.appendChild(stack);
+  });
+}
+
+/* ---------- Volcán animado + revelado de secciones ---------- */
+function volcanoSVG() {
+  return '<div class="volcano-wrap">' +
+    '<svg class="volcano-svg" viewBox="0 0 240 200" aria-hidden="true">' +
+    '<defs>' +
+      '<linearGradient id="vLavaG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="oklch(80% 0.16 60)"/><stop offset="1" stop-color="oklch(63% 0.21 32)"/></linearGradient>' +
+      '<clipPath id="vCrater"><path d="M92,72 Q120,60 148,72 L154,90 L86,90 Z"/></clipPath>' +
+    '</defs>' +
+    '<g clip-path="url(#vCrater)"><rect class="v-lava" x="80" y="64" width="80" height="44" fill="url(#vLavaG)"/>' +
+      '<circle class="v-bub b1" cx="108" cy="86" r="4"/><circle class="v-bub b2" cx="126" cy="88" r="3.4"/><circle class="v-bub b3" cx="136" cy="84" r="5"/></g>' +
+    '<path class="v-line" d="M28,182 L92,74 Q120,60 148,74 L212,182 Z"/>' +
+    '<path class="v-line" d="M86,90 Q120,78 154,90"/>' +
+    '<path class="v-vein" d="M98,150 q14,-12 28,-2 M126,168 q16,-12 34,-4"/>' +
+    '</svg></div>';
+}
+
+let volcanoBusy = false;
+function playVolcanoReveal() {
+  if (volcanoBusy) return;
+  volcanoBusy = true;
+  const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const back = el("div", { class: "basket-back" });
+  const stage = el("div", { class: "basket-stage", html: volcanoSVG() + '<div class="basket-text">El volcán empieza a burbujear…</div>' });
+  back.appendChild(stage);
+  document.body.appendChild(back);
+  const svg = stage.querySelector(".volcano-svg");
+
+  const finish = () => { volcanoBusy = false; back.style.transition = "opacity .35s"; back.style.opacity = "0"; setTimeout(() => back.remove(), 360); };
+
+  const reveal = () => {
+    stage.remove();
+    const canvas = el("canvas", { class: "cele-confetti" });
+    back.appendChild(canvas);
+    const stop = confettiBurst(canvas, { count: 170, power: 14, oy: window.innerHeight * 0.5 });
+    const panel = el("div", { class: "basket-reveal" });
+    panel.appendChild(el("div", { class: "reveal-title", text: "¡Secciones repartidas!" }));
+    const grid = el("div", { class: "bubble-grid" });
+    state.sectionParts.forEach((p, i) => { const n = partBubbleNode(p, {}); n.style.animationDelay = (i * 90) + "ms"; grid.appendChild(n); });
+    panel.appendChild(grid);
+    back.appendChild(panel);
+
+    const mt = myTeam();
+    const myParts = mt ? state.sectionParts.filter(p => state.partTeam[p.id] === mt.id) : [];
+    const closeBtn = el("button", { class: "cele-btn", text: "¡Listo!", onclick: () => { if (stop) stop(); finish(); } });
+
+    if (myParts.length) {
+      const delay = Math.min(3200 + state.sectionParts.length * 160, 5200);
+      setTimeout(() => {
+        grid.classList.add("dim");
+        const spot = el("div", { class: "team-spotlight" });
+        spot.appendChild(el("div", { class: "spot-label", text: myParts.length > 1 ? "Tus secciones · " + teamLabel(mt) : "Tu sección · " + teamLabel(mt) }));
+        const sg = el("div", { class: "bubble-grid" });
+        myParts.forEach(p => sg.appendChild(partBubbleNode(p, { big: true })));
+        spot.appendChild(sg);
+        spot.appendChild(closeBtn);
+        back.appendChild(spot);
+      }, delay);
+    } else {
+      panel.appendChild(closeBtn);
+    }
+    setTimeout(() => { if (volcanoBusy) { if (stop) stop(); finish(); } }, 16000);
+  };
+
+  if (reduce) { reveal(); return; }
+  svg.classList.add("vs1");
+  setTimeout(() => { svg.classList.remove("vs1"); svg.classList.add("vs2"); stage.querySelector(".basket-text").textContent = "Sube la presión…"; }, 1200);
+  setTimeout(() => { svg.classList.remove("vs2"); svg.classList.add("vs3"); stage.querySelector(".basket-text").textContent = "¡Va a hacer erupción!"; }, 2400);
+  setTimeout(reveal, 3300);
+}
+
+function celebrateSwap(payload) {
+  const back = el("div", { class: "cele-back" });
+  const canvas = el("canvas", { class: "cele-confetti" });
+  back.appendChild(canvas);
+  const card = el("div", { class: "cele-card" });
+  card.appendChild(el("div", { class: "cele-flask", style: { background: "linear-gradient(160deg, var(--accent), oklch(62% 0.17 50))" }, html: ICON.sparkle() }));
+  card.appendChild(el("h2", { class: "cele-title", text: "¡Intercambio hecho!" }));
+  card.appendChild(el("p", { class: "cele-sub", html: `<strong>${escapeHtml(payload.a || "")}</strong> ⇄ <strong>${escapeHtml(payload.b || "")}</strong> intercambiaron secciones` }));
+  const btn = el("button", { class: "cele-btn", text: "¡Genial!" });
+  card.appendChild(btn);
+  back.appendChild(card);
+  document.body.appendChild(back);
+  const stop = confettiBurst(canvas, { count: 120, power: 11 });
+  let closed = false;
+  const close = () => { if (closed) return; closed = true; if (stop) stop(); back.style.transition = "opacity .3s"; back.style.opacity = "0"; setTimeout(() => back.remove(), 300); };
+  btn.addEventListener("click", close);
+  back.addEventListener("click", e => { if (e.target === back) close(); });
+  setTimeout(close, 3400);
 }
 
 /* ---------- Canasta animada + revelado de equipos ---------- */
@@ -2381,6 +2798,8 @@ function subscribeRealtime() {
     .on("postgres_changes", { event: "*", schema: "public", table: "teams" }, onRealtimeChange)
     .on("postgres_changes", { event: "*", schema: "public", table: "team_members" }, onRealtimeChange)
     .on("postgres_changes", { event: "*", schema: "public", table: "join_requests" }, onRealtimeChange)
+    .on("postgres_changes", { event: "*", schema: "public", table: "part_assignments" }, onRealtimeChange)
+    .on("postgres_changes", { event: "*", schema: "public", table: "swap_requests" }, onRealtimeChange)
     .on("broadcast", { event: "lab_done" }, (msg) => {
       const p = (msg && msg.payload) || {};
       if (p.labId && p.labId === state.currentLabId) celebrate("lab", null, p.name || "");
@@ -2393,6 +2812,18 @@ function subscribeRealtime() {
     .on("broadcast", { event: "member_joined" }, (msg) => {
       const p = (msg && msg.payload) || {};
       if (p.user && p.team) celebrateJoin(p.user, p.team);
+    })
+    .on("broadcast", { event: "sections_assigned" }, async (msg) => {
+      const p = (msg && msg.payload) || {};
+      if (!p.labId) return;
+      state.sectionLabId = p.labId;
+      await loadSections(p.labId);
+      if (state.view === "app") render();
+      playVolcanoReveal();
+    })
+    .on("broadcast", { event: "section_swapped" }, (msg) => {
+      const p = (msg && msg.payload) || {};
+      if (p.a && p.b) celebrateSwap(p);
     })
     .subscribe((status) => {
       const on = status === "SUBSCRIBED";
@@ -2410,6 +2841,7 @@ function onRealtimeChange() {
     if (!state.session) return;
     await loadLabs();
     await loadTeams();
+    if (state.sectionLabId) await loadSections(state.sectionLabId);
     if (state.currentLabId) await loadLabData();
     render();
   }, 400);
