@@ -1,0 +1,6 @@
+# Publicar la app (index.html) y la función del servidor (api/).
+# Excluye reporte, PDF, zip, archivos de diseño, llaves y la carpeta de imágenes.
+*
+!index.html
+!api
+!api/**

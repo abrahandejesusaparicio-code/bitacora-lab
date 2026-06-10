@@ -1,0 +1,1398 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#ece4d2" />
+<title>Bitácora de Lab — Tareas y Evidencia</title>
+<style>
+  :root {
+    --base-100: oklch(91.637% 0.034 90.515);
+    --base-200: oklch(88.272% 0.049 91.774);
+    --base-300: oklch(84.133% 0.065 90.856);
+    --base-content: oklch(41% 0.112 45.904);
+    --surface: oklch(96.5% 0.018 92);
+    --surface-2: oklch(94% 0.026 92);
+    --primary: oklch(72% 0.135 23);
+    --primary-soft: oklch(80% 0.114 19.571);
+    --secondary: oklch(72% 0.10 156);
+    --secondary-soft: oklch(92% 0.084 155.995);
+    --accent: oklch(68% 0.162 75.834);
+    --neutral: oklch(44% 0.043 257.281);
+    --success: oklch(55% 0.10 165);
+    --warning: oklch(72% 0.135 70);
+    --error: oklch(63% 0.19 24);
+    --radius-box: 18px;
+    --radius-field: 999px;
+    --border: 1.5px;
+    --accent-active: var(--primary);
+    --row-pad-y: 13px;
+    --meta-font: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+    --ease-spring: cubic-bezier(.34, 1.56, .64, 1);
+    --ease-out: cubic-bezier(.22, .61, .36, 1);
+    --shadow-card: 0 1px 2px oklch(40% 0.05 60 / .05), 0 12px 34px -14px oklch(40% 0.08 50 / .28);
+    --shadow-lift: 0 10px 26px -10px oklch(40% 0.1 45 / .42);
+    --hair: oklch(80% 0.05 90 / .55);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, "Segoe UI", sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    min-height: 100%; color: var(--base-content);
+    background: radial-gradient(120% 80% at 50% -10%, var(--base-100), var(--base-200) 70%, var(--base-300));
+    -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+    letter-spacing: -0.01em; padding: clamp(16px, 4vh, 52px) 16px max(120px, env(safe-area-inset-bottom));
+    position: relative;
+  }
+  body::before {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: var(--grain-opacity, .5);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+    mix-blend-mode: multiply; background-size: 180px;
+  }
+  #root { position: relative; z-index: 1; }
+  .app { max-width: 640px; margin: 0 auto; }
+
+  /* Header */
+  .head { padding: 4px 6px 18px; }
+  .head-top { display: flex; align-items: center; gap: 13px; }
+  .mark {
+    width: 46px; height: 46px; flex: none; border-radius: 14px;
+    background: linear-gradient(160deg, var(--primary-soft), var(--primary));
+    display: grid; place-items: center; color: oklch(98% 0.01 90);
+    box-shadow: 0 6px 16px -6px var(--primary), inset 0 1px 0 oklch(100% 0 0 / .35);
+  }
+  .mark svg { width: 25px; height: 25px; }
+  .head-titles { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+  .eyebrow { font-size: 11px; font-weight: 650; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); font-family: var(--meta-font); }
+  .head h1 { font-size: 27px; font-weight: 720; letter-spacing: -0.02em; line-height: 1.05; color: oklch(34% 0.09 48); }
+
+  .whoami { display: inline-flex; align-items: center; gap: 8px; margin-left: auto;
+    background: var(--surface); border: var(--border) solid var(--hair); border-radius: 999px; padding: 4px 6px 4px 10px; box-shadow: var(--shadow-card); }
+  .whoami .who-name { font-size: 12.5px; font-weight: 650; color: oklch(40% 0.08 52); white-space: nowrap; }
+  .whoami .who-av { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: 10px; font-weight: 700; color: #fff; box-shadow: inset 0 1px 0 oklch(100% 0 0 /.25); }
+  .icon-btn { appearance: none; border: 0; background: transparent; cursor: pointer; color: oklch(52% 0.06 56); width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; transition: background .18s, color .18s, transform .18s var(--ease-spring); }
+  .icon-btn:hover { background: var(--surface-2); color: var(--primary); }
+  .icon-btn:active { transform: scale(.9); }
+  .icon-btn svg { width: 17px; height: 17px; }
+
+  .role-badge { font-size: 9.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; padding: 2px 7px; border-radius: 999px; font-family: var(--meta-font); }
+  .role-badge.admin { background: oklch(90% 0.05 255 / .85); color: oklch(45% 0.13 255); }
+  .role-badge.member { background: oklch(85% 0.03 90 / .9); color: oklch(48% 0.05 58); }
+
+  /* Card */
+  .card { background: var(--surface); border: var(--border) solid var(--hair); border-radius: var(--radius-box); box-shadow: var(--shadow-card); overflow: hidden; }
+
+  /* Section header row */
+  .section-row { display: flex; align-items: center; gap: 10px; margin: 20px 2px 12px; flex-wrap: wrap; }
+  .section-row h2 { font-size: 16px; font-weight: 700; color: oklch(36% 0.08 50); letter-spacing: -0.01em; }
+  .section-row .spacer { margin-left: auto; }
+
+  /* Buttons */
+  .btn-sm { appearance: none; border: 0; cursor: pointer; font: inherit; font-size: 13px; font-weight: 650; color: oklch(99% 0.01 90);
+    background: linear-gradient(160deg, var(--primary-soft), var(--primary)); border-radius: 10px; padding: 8px 14px;
+    display: inline-flex; align-items: center; gap: 7px; box-shadow: 0 6px 16px -10px var(--primary); transition: transform .18s var(--ease-spring), filter .18s; }
+  .btn-sm:hover { filter: brightness(1.03); } .btn-sm:active { transform: scale(.96); }
+  .btn-sm svg { width: 15px; height: 15px; }
+  .btn-sm.ghost { background: var(--surface-2); color: oklch(46% 0.06 56); border: 1.5px solid var(--hair); box-shadow: none; }
+  .btn-sm.danger { background: linear-gradient(160deg, oklch(70% 0.14 30), var(--error)); box-shadow: none; }
+
+  .back-btn { appearance: none; background: var(--surface); cursor: pointer; font: inherit; font-size: 13px; font-weight: 600;
+    color: oklch(46% 0.06 56); border: var(--border) solid var(--hair); border-radius: 999px; padding: 7px 14px 7px 10px;
+    display: inline-flex; align-items: center; gap: 6px; box-shadow: var(--shadow-card); transition: transform .18s var(--ease-spring), background .18s; }
+  .back-btn:hover { background: var(--surface-2); } .back-btn:active { transform: scale(.96); }
+  .back-btn svg { width: 15px; height: 15px; }
+
+  .link-btn { appearance: none; border: 0; background: transparent; cursor: pointer; font: inherit; font-size: 12.5px; font-weight: 650; color: var(--primary); padding: 5px 9px; border-radius: 8px; transition: background .18s, transform .18s var(--ease-spring); display: inline-flex; align-items: center; gap: 6px; }
+  .link-btn:hover { background: oklch(80% 0.06 30 / .18); } .link-btn:active { transform: scale(.94); }
+  .link-btn svg { width: 14px; height: 14px; }
+
+  /* Lab tiles */
+  .lab-grid { display: flex; flex-direction: column; gap: 12px; }
+  .lab-tile { display: flex; align-items: center; gap: 14px; text-align: left; width: 100%; appearance: none; cursor: pointer; font: inherit;
+    background: var(--surface); border: var(--border) solid var(--hair); border-radius: var(--radius-box); box-shadow: var(--shadow-card);
+    padding: 16px 18px; transition: transform .18s var(--ease-spring), box-shadow .2s; }
+  .lab-tile:hover { transform: translateY(-1px); box-shadow: var(--shadow-lift); }
+  .lab-tile:active { transform: scale(.99); }
+  .lab-tile .lab-ic { width: 42px; height: 42px; flex: none; border-radius: 12px; display: grid; place-items: center; color: #fff;
+    background: linear-gradient(160deg, var(--primary-soft), var(--primary)); box-shadow: inset 0 1px 0 oklch(100% 0 0 /.3); }
+  .lab-tile .lab-ic svg { width: 22px; height: 22px; }
+  .lab-tile .lab-info { flex: 1; min-width: 0; }
+  .lab-tile .lab-name { font-size: 16px; font-weight: 650; color: oklch(34% 0.09 48); }
+  .lab-tile .lab-sub { font-size: 12.5px; color: oklch(54% 0.05 58); margin-top: 2px; }
+  .lab-tile .lab-arrow { color: oklch(64% 0.05 58); flex: none; }
+  .lab-tile.archived { opacity: .55; }
+
+  /* Parts */
+  .part { display: flex; align-items: flex-start; gap: 12px; padding: 14px; background: var(--surface); }
+  .part + .part { border-top: 1px solid var(--hair); }
+  .part .pnum { width: 26px; height: 26px; flex: none; border-radius: 8px; background: var(--surface-2); border: 1.5px solid var(--hair);
+    display: grid; place-items: center; font-size: 12px; font-weight: 700; color: oklch(48% 0.06 56); font-variant-numeric: tabular-nums; }
+  .part.done .pnum { background: var(--success); border-color: transparent; color: #fff; }
+  .part .pbody { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+  .part .ptitle { font-size: 15px; font-weight: 600; line-height: 1.3; color: var(--base-content); }
+  .part.done .ptitle { color: oklch(60% 0.04 58); }
+  .part .pdesc { font-size: 13px; color: oklch(52% 0.05 58); line-height: 1.45; white-space: pre-wrap; }
+  .part .pmeta { display: flex; gap: 7px; flex-wrap: wrap; align-items: center; margin-top: 2px; }
+  .part .pactions { display: flex; gap: 4px; align-items: center; flex: none; }
+  .chip { font-size: 11px; font-weight: 600; color: oklch(46% 0.05 58); font-family: var(--meta-font); background: var(--surface-2); border: 1.5px solid var(--hair); padding: 3px 9px 3px 7px; border-radius: 7px; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+  .chip .cdot { width: 6px; height: 6px; border-radius: 2px; background: var(--accent); }
+  .pill-done { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: oklch(90% 0.06 165 / .85); color: oklch(42% 0.1 165); font-family: var(--meta-font); display: inline-flex; gap: 5px; align-items: center; }
+
+  /* Add bar */
+  .add-bar { display: flex; align-items: center; gap: 10px; padding: 12px 14px; }
+  .add-bar input { flex: 1; min-width: 0; border: 0; background: transparent; font: inherit; font-size: 16px; color: var(--base-content); outline: none; font-weight: 500; }
+  .add-bar input::placeholder { color: oklch(58% 0.05 58); font-weight: 450; }
+
+  /* Empty */
+  .empty { padding: 44px 20px 48px; text-align: center; color: oklch(56% 0.05 58); }
+  .empty .e-ic { width: 54px; height: 54px; margin: 0 auto 14px; border-radius: 16px; background: var(--surface-2); display: grid; place-items: center; color: oklch(68% 0.07 60); border: 1.5px solid var(--hair); }
+  .empty .e-ic svg { width: 26px; height: 26px; }
+  .empty h3 { font-size: 16px; font-weight: 650; color: oklch(44% 0.06 54); margin-bottom: 3px; }
+  .empty p { font-size: 13.5px; }
+
+  /* ===== Auth ===== */
+  .auth-wrap { max-width: 390px; margin: clamp(20px, 8vh, 90px) auto 0; }
+  .auth-card { background: var(--surface); border: var(--border) solid var(--hair); border-radius: var(--radius-box); box-shadow: var(--shadow-card); padding: 30px 26px 26px; }
+  .auth-head { text-align: center; margin-bottom: 22px; }
+  .auth-head .mark { margin: 0 auto 14px; }
+  .auth-head h1 { font-size: 22px; font-weight: 720; letter-spacing: -0.02em; color: oklch(34% 0.09 48); }
+  .auth-head p { font-size: 13px; color: oklch(52% 0.05 58); margin-top: 4px; }
+  .field { margin-bottom: 14px; text-align: left; }
+  .field label { display: block; font-size: 11px; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; color: oklch(54% 0.05 58); margin-bottom: 6px; font-family: var(--meta-font); }
+  .field-input { display: flex; align-items: center; gap: 9px; background: var(--surface-2); border: 1.5px solid var(--hair); border-radius: 12px; padding: 11px 13px; transition: border-color .18s, box-shadow .18s; }
+  .field-input:focus-within { border-color: var(--accent-active); box-shadow: 0 0 0 3px oklch(72% 0.135 23 / .15); }
+  .field-input svg { width: 16px; height: 16px; color: oklch(58% 0.05 58); flex: none; }
+  .field-input input { flex: 1; min-width: 0; border: 0; background: transparent; outline: none; font: inherit; font-size: 16px; font-weight: 500; color: var(--base-content); }
+  .field-input .reveal { cursor: pointer; }
+  .btn-primary { width: 100%; appearance: none; border: 0; cursor: pointer; font: inherit; font-size: 15px; font-weight: 650; color: oklch(99% 0.01 90);
+    background: linear-gradient(160deg, var(--primary-soft), var(--primary)); border-radius: 12px; padding: 13px; margin-top: 6px;
+    box-shadow: 0 6px 16px -8px var(--primary); transition: transform .18s var(--ease-spring), filter .18s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+  .btn-primary:hover { filter: brightness(1.03); } .btn-primary:active { transform: scale(.97); }
+  .btn-primary:disabled { opacity: .6; cursor: default; }
+  .auth-err { background: oklch(90% 0.06 30 / .6); border: 1.5px solid oklch(75% 0.12 30 / .5); color: oklch(45% 0.16 28); font-size: 13px; font-weight: 600; border-radius: 10px; padding: 9px 12px; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .auth-ok { background: oklch(90% 0.06 165 / .6); border: 1.5px solid oklch(70% 0.09 165 / .5); color: oklch(40% 0.1 165); font-size: 13px; font-weight: 600; border-radius: 10px; padding: 9px 12px; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .auth-err svg, .auth-ok svg { width: 16px; height: 16px; flex: none; }
+  .auth-switch { text-align: center; font-size: 13px; color: oklch(54% 0.05 58); margin-top: 18px; }
+  .auth-switch button { appearance: none; border: 0; background: transparent; cursor: pointer; font: inherit; font-size: 13px; font-weight: 700; color: var(--primary); padding: 2px 4px; }
+  .seg-roles { display: flex; gap: 6px; margin-bottom: 20px; padding: 4px; background: var(--surface-2); border: var(--border) solid var(--hair); border-radius: var(--radius-field); }
+  .seg-roles button { flex: 1; appearance: none; border: 0; background: transparent; cursor: pointer; font: inherit; font-size: 13px; font-weight: 600; color: oklch(50% 0.06 56); padding: 8px; border-radius: 999px; transition: all .2s var(--ease-out); display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+  .seg-roles button svg { width: 15px; height: 15px; }
+  .seg-roles button[aria-selected="true"] { background: var(--surface); color: oklch(33% 0.1 48); box-shadow: 0 2px 6px -2px oklch(40% 0.08 50 / .3); }
+
+  /* ===== Modal ===== */
+  .modal-back { position: fixed; inset: 0; z-index: 50; background: oklch(30% 0.04 60 / .42); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); display: grid; place-items: center; padding: 20px; animation: fadeIn .2s var(--ease-out); }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes popIn { from { opacity: 0; transform: translateY(8px) scale(.97); } to { opacity: 1; transform: none; } }
+  .modal { background: var(--surface); border: var(--border) solid var(--hair); border-radius: 20px; box-shadow: var(--shadow-card); padding: 22px 22px; max-width: 440px; width: 100%; max-height: 86vh; overflow-y: auto; animation: popIn .28s var(--ease-spring); }
+  .modal h2 { font-size: 18px; font-weight: 700; color: oklch(34% 0.09 48); letter-spacing: -0.01em; margin-bottom: 4px; }
+  .modal .modal-sub { font-size: 13px; color: oklch(54% 0.05 58); margin-bottom: 12px; }
+  .mlabel { display: block; font-size: 11px; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; color: oklch(54% 0.05 58); margin: 14px 2px 6px; font-family: var(--meta-font); }
+  .minput, .ta { width: 100%; border: 1.5px solid var(--hair); background: var(--surface-2); border-radius: 12px; padding: 11px 13px; font: inherit; font-size: 15px; color: var(--base-content); outline: none; }
+  .ta { resize: vertical; min-height: 64px; line-height: 1.4; }
+  .minput:focus, .ta:focus { border-color: var(--accent-active); box-shadow: 0 0 0 3px oklch(72% 0.135 23 / .15); }
+  .chooser { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .choose-chip { appearance: none; cursor: pointer; font: inherit; font-size: 12.5px; font-weight: 600; border: 1.5px solid var(--hair); background: var(--surface); color: oklch(46% 0.06 56); padding: 5px 11px; border-radius: 999px; display: inline-flex; align-items: center; gap: 6px; transition: transform .18s var(--ease-spring), background .18s, border-color .18s, color .18s; }
+  .choose-chip:hover { transform: translateY(-1px); border-color: oklch(70% 0.08 60); }
+  .choose-chip:active { transform: scale(.94); }
+  .choose-chip[aria-pressed="true"] { background: var(--accent-active); color: oklch(98% 0.01 90); border-color: transparent; }
+  .modal-actions { display: flex; gap: 9px; margin-top: 22px; }
+  .modal-actions .btn-primary, .modal-actions .btn-sm { margin-top: 0; flex: 1; }
+
+  /* ===== Toast ===== */
+  .toast-host { position: fixed; left: 0; right: 0; bottom: max(20px, env(safe-area-inset-bottom)); z-index: 70; display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none; }
+  .toast { background: oklch(34% 0.05 56); color: oklch(97% 0.01 90); font-size: 13.5px; font-weight: 600; padding: 11px 18px; border-radius: 999px; box-shadow: var(--shadow-lift); display: inline-flex; align-items: center; gap: 9px; animation: popIn .28s var(--ease-spring); max-width: 90vw; }
+  .toast svg { width: 16px; height: 16px; flex: none; }
+  .toast.ok { background: oklch(45% 0.1 165); } .toast.err { background: oklch(48% 0.16 28); }
+
+  /* loading */
+  .loading { display: grid; place-items: center; min-height: 60vh; }
+  .spinner { width: 34px; height: 34px; border-radius: 50%; border: 3px solid oklch(80% 0.05 90 / .5); border-top-color: var(--primary); animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* assigned avatars + completion + photos */
+  .avatars { display: inline-flex; align-items: center; }
+  .av { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: 9.5px; font-weight: 700; color: #fff; border: 2px solid var(--surface); margin-left: -6px; box-shadow: 0 1px 2px oklch(40% 0.05 60 /.3); }
+  .av:first-child { margin-left: 0; }
+  .av.me { box-shadow: 0 0 0 2px var(--accent-active); }
+  .part-check { width: 24px; height: 24px; flex: none; margin-top: 1px; border-radius: 50%; border: 2px solid oklch(68% 0.06 55 / .8); background: transparent; cursor: pointer; display: grid; place-items: center; padding: 0; transition: transform .2s var(--ease-spring), background .2s, border-color .2s; }
+  .part-check:hover { transform: scale(1.1); border-color: var(--accent-active); }
+  .part-check:active { transform: scale(.9); }
+  .part-check.on { background: var(--success); border-color: transparent; color: #fff; }
+  .part-check.spacer { border: 2px solid transparent; cursor: default; }
+  .part-check svg { width: 14px; height: 14px; }
+  .photo-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 4px; }
+  .photo-thumb { width: 46px; height: 46px; border-radius: 8px; object-fit: cover; cursor: zoom-in; background: var(--surface-2); border: 1.5px solid var(--hair); }
+  .photo-add { width: 46px; height: 46px; border-radius: 8px; border: 1.5px dashed oklch(70% 0.08 50 /.6); background: var(--surface-2); color: var(--accent-active); display: grid; place-items: center; cursor: pointer; appearance: none; }
+  .photo-add:active { transform: scale(.94); }
+  .photo-add svg { width: 18px; height: 18px; }
+  .photo-dl { border-style: solid; border-color: oklch(70% 0.09 165 / .55); color: oklch(45% 0.1 165); background: oklch(90% 0.06 165 / .5); }
+  .photo-dl:hover { background: oklch(90% 0.08 165 / .8); }
+  .lightbox-back { position: fixed; inset: 0; z-index: 60; background: oklch(20% 0.03 60 /.85); display: grid; place-items: center; padding: 20px; cursor: zoom-out; animation: fadeIn .2s var(--ease-out); }
+  .lightbox-img { max-width: 100%; max-height: 84vh; border-radius: 14px; box-shadow: 0 20px 60px -20px #000; animation: popIn .28s var(--ease-spring); }
+  .lightbox-cap { position: fixed; bottom: 22px; left: 0; right: 0; text-align: center; color: #fff; font-size: 13px; font-weight: 600; text-shadow: 0 1px 4px #000; padding: 0 20px; }
+  .lightbox-dl { position: fixed; top: max(16px, env(safe-area-inset-top)); right: 16px; z-index: 61; appearance: none; border: 0; cursor: pointer; font: inherit; font-size: 13px; font-weight: 650; color: #fff; background: oklch(45% 0.1 165); border-radius: 999px; padding: 9px 15px; display: inline-flex; align-items: center; gap: 7px; box-shadow: var(--shadow-lift); }
+  .lightbox-dl svg { width: 16px; height: 16px; }
+  /* cámara dentro de la app (funciona aunque el navegador ignore 'capture') */
+  .cam-back { position: fixed; inset: 0; z-index: 80; background: #000; display: flex; flex-direction: column; animation: fadeIn .15s var(--ease-out); }
+  .cam-back video { flex: 1; width: 100%; height: 100%; object-fit: cover; background: #000; }
+  .cam-hint { position: fixed; top: max(14px, env(safe-area-inset-top)); left: 0; right: 0; text-align: center; color: #fff; font-size: 13px; font-weight: 600; text-shadow: 0 1px 4px #000; padding: 0 64px; pointer-events: none; }
+  .cam-shutter { position: fixed; bottom: max(28px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); width: 70px; height: 70px; border-radius: 50%; background: #fff; border: 5px solid var(--primary); cursor: pointer; box-shadow: 0 4px 18px rgba(0,0,0,.5); }
+  .cam-shutter:active { transform: translateX(-50%) scale(.92); }
+  .cam-close { position: fixed; top: max(14px, env(safe-area-inset-top)); right: 14px; width: 42px; height: 42px; border-radius: 50%; background: rgba(0,0,0,.45); color: #fff; border: 0; display: grid; place-items: center; cursor: pointer; }
+  .cam-close svg { width: 22px; height: 22px; }
+  .cam-switch { position: fixed; bottom: max(40px, env(safe-area-inset-bottom)); right: 26px; width: 46px; height: 46px; border-radius: 50%; background: rgba(0,0,0,.45); color: #fff; border: 0; display: grid; place-items: center; cursor: pointer; }
+  .cam-switch svg { width: 22px; height: 22px; }
+  /* modal: photo prompt + assign */
+  .modal-ic { width: 52px; height: 52px; border-radius: 16px; margin: 0 auto 14px; background: linear-gradient(160deg, var(--secondary-soft), var(--secondary)); display: grid; place-items: center; color: #fff; box-shadow: inset 0 1px 0 oklch(100% 0 0 /.3); }
+  .modal-ic svg { width: 26px; height: 26px; }
+  .modal.center { text-align: center; }
+  .modal.center h2 { text-align: center; }
+  .modal-btn { appearance: none; border: 0; cursor: pointer; font: inherit; font-size: 14.5px; font-weight: 650; border-radius: 12px; padding: 13px; display: inline-flex; align-items: center; justify-content: center; gap: 9px; transition: transform .18s var(--ease-spring), filter .18s, background .18s; width: 100%; }
+  .modal-btn svg { width: 18px; height: 18px; }
+  .modal-btn:active { transform: scale(.97); }
+  .modal-btn.primary { color: oklch(99% 0.01 90); background: linear-gradient(160deg, var(--primary-soft), var(--primary)); box-shadow: 0 6px 16px -8px var(--primary); }
+  .modal-btn.ghost { color: oklch(46% 0.06 56); background: var(--surface-2); border: 1.5px solid var(--hair); }
+  .stack { display: flex; flex-direction: column; gap: 9px; margin-top: 20px; }
+  .assign-list { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; }
+  .assign-item { display: flex; align-items: center; gap: 11px; padding: 9px 10px; border-radius: 10px; cursor: pointer; border: 1.5px solid transparent; background: transparent; appearance: none; font: inherit; text-align: left; width: 100%; transition: background .15s; }
+  .assign-item:hover { background: var(--surface-2); }
+  .assign-item.on { border-color: var(--accent-active); background: oklch(72% 0.135 23 / .08); }
+  .assign-item .ai-av { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 700; color: #fff; flex: none; }
+  .assign-item .ai-name { flex: 1; min-width: 0; font-size: 14px; font-weight: 600; color: var(--base-content); }
+  .assign-item .ai-name small { display: block; font-weight: 500; font-size: 11px; color: oklch(56% 0.04 58); }
+  .assign-item .ai-check { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--hair); display: grid; place-items: center; flex: none; color: #fff; }
+  .assign-item.on .ai-check { background: var(--accent-active); border-color: transparent; }
+  .assign-item .ai-check svg { width: 13px; height: 13px; opacity: 0; }
+  .assign-item.on .ai-check svg { opacity: 1; }
+
+  /* móvil: logo + usuario arriba, título grande debajo (evita que se encimen) */
+  /* botón "Instrucciones detalladas" en la parte */
+  .detail-btn { appearance: none; cursor: pointer; font: inherit; font-size: 12.5px; font-weight: 650; color: var(--primary);
+    background: oklch(80% 0.06 30 / .12); border: 1.5px solid oklch(75% 0.08 30 / .35); border-radius: 9px; padding: 7px 12px;
+    display: inline-flex; align-items: center; gap: 7px; margin-top: 4px; align-self: flex-start;
+    transition: background .15s, transform .15s var(--ease-spring); }
+  .detail-btn:hover { background: oklch(80% 0.07 30 / .2); }
+  .detail-btn:active { transform: scale(.97); }
+  .detail-btn svg { width: 14px; height: 14px; }
+
+  /* vista de instrucciones detalladas */
+  .dstep { display: flex; gap: 12px; padding: 16px 0; border-top: 1px solid var(--hair); }
+  .dstep:first-child { border-top: 0; }
+  .dstep-n { width: 26px; height: 26px; flex: none; border-radius: 8px; background: var(--primary); color: #fff; display: grid; place-items: center; font-size: 12px; font-weight: 700; }
+  .dstep-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+  .dstep-text { font-size: 14.5px; line-height: 1.65; color: var(--base-content); white-space: pre-wrap; }
+  .dquestions { background: var(--surface-2); border: 1px solid var(--hair); border-radius: 10px; padding: 10px 13px; }
+  .dq-label { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); font-family: var(--meta-font); }
+  .dquestions ul { margin: 7px 0 0; padding-left: 18px; }
+  .dquestions li { font-size: 13px; line-height: 1.55; color: oklch(44% 0.07 50); margin: 4px 0; font-weight: 500; }
+
+  @media (max-width: 600px) {
+    .head-top { flex-wrap: wrap; row-gap: 10px; }
+    .mark { order: 0; }
+    .whoami { order: 1; margin-left: auto; }
+    .head-titles { order: 2; flex: 1 1 100%; }
+    .head h1 { font-size: 23px; }
+    .section-row h2 { font-size: 15px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) { * { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; } }
+</style>
+</head>
+<body>
+  <div id="root"><div class="loading"><div class="spinner"></div></div></div>
+  <div class="toast-host" id="toast-host"></div>
+
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+/* ============================================================= *
+ *  CONFIG — tu proyecto de Supabase
+ * ============================================================= */
+const SUPABASE_URL = "https://xngfmzrqejbufsfhaozp.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhuZ2ZtenJxZWpidWZzZmhhb3pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMzEwNTMsImV4cCI6MjA5NjYwNzA1M30.3i1TwUDr5BUFFbPS1TrlhNbvzfPa0ytM3maN5DqrpNk";
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+/* ---------------- Iconos ---------------- */
+function svg(paths, opts = {}) {
+  const vb = opts.vb || 24, size = opts.size || 20, fill = opts.fill || "none", stroke = opts.stroke || "currentColor", sw = opts.sw || 1.8;
+  const inner = (Array.isArray(paths) ? paths : [paths]).map(d => `<path d="${d}"/>`).join("");
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${vb} ${vb}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`;
+}
+const ICON = {
+  flask: o => svg(["M9 3h6M10 3v6.5L5.2 17.5a2 2 0 0 0 1.7 3h10.2a2 2 0 0 0 1.7-3L14 9.5V3", "M7.4 14h9.2"], o),
+  check: o => svg("M5 12.5l4 4 10-10", o),
+  plus:  o => svg("M12 5v14M5 12h14", { ...o, sw: 2 }),
+  trash: o => svg("M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12", o),
+  sparkle: o => svg("M12 4l1.6 4.4L18 10l-4.4 1.6L12 16l-1.6-4.4L6 10l4.4-1.6L12 4z", o),
+  user:  o => svg(["M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z", "M4 20a8 8 0 0 1 16 0"], o),
+  lock:  o => svg(["M6 10V8a6 6 0 0 1 12 0v2", "M5 10h14a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1z"], o),
+  mail:  o => svg(["M4 6h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1z", "M3.5 7l8.5 6 8.5-6"], o),
+  shield: o => svg(["M12 3l8 3v5c0 5-3.4 8.5-8 10-4.6-1.5-8-5-8-10V6l8-3z", "M9 12l2 2 4-4"], o),
+  out:   o => svg(["M15 4h3a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-3", "M10 8l-4 4 4 4", "M6 12h11"], o),
+  eye:   o => svg(["M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z", "M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"], o),
+  edit:  o => svg(["M4 20h4L18.5 9.5a2.12 2.12 0 0 0-3-3L5 17z", "M13.5 7.5l3 3"], o),
+  chevR: o => svg("M9 6l6 6-6 6", o),
+  chevL: o => svg("M15 6l-6 6 6 6", o),
+  warn:  o => svg(["M12 3l9 16H3z", "M12 10v4", "M12 17h.01"], o),
+  beaker: o => svg(["M8 3h8M9 3v5l-4.5 9A2 2 0 0 0 6.3 20h11.4a2 2 0 0 0 1.8-3L15 8V3", "M7 13h10"], o),
+  camera: o => svg(["M3 8.5A2.5 2.5 0 0 1 5.5 6h1.2a1 1 0 0 0 .8-.4l.9-1.2a1 1 0 0 1 .8-.4h3.6a1 1 0 0 1 .8.4l.9 1.2a1 1 0 0 0 .8.4h1.2A2.5 2.5 0 0 1 21 8.5v8A2.5 2.5 0 0 1 18.5 19h-13A2.5 2.5 0 0 1 3 16.5z", "M12 16a3.2 3.2 0 1 0 0-6.4A3.2 3.2 0 0 0 12 16z"], o),
+  image: o => svg(["M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z", "M3 16l5-5 4 4 3-3 6 6", "M9 10a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"], o),
+  users: o => svg(["M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z", "M2.5 20a6.5 6.5 0 0 1 13 0", "M16 4.2a3.5 3.5 0 0 1 0 6.6", "M18 13.5a6.5 6.5 0 0 1 3.5 6.5"], o),
+  download: o => svg(["M12 4v10", "M8 11l4 4 4-4", "M5 19h14"], o),
+  folder: o => svg("M4 6a1 1 0 0 1 1-1h4l2 2h8a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z", o),
+  close: o => svg(["M6 6l12 12", "M18 6L6 18"], o),
+  doc: o => svg(["M14 3v5h5", "M7 3h7l5 5v11a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z", "M9 13h6M9 16h6"], o),
+  list: o => svg(["M8 6h11", "M8 12h11", "M8 18h11", "M3.6 6h.01", "M3.6 12h.01", "M3.6 18h.01"], o),
+};
+
+/* ---------------- Datos del dominio ---------------- */
+const EQUIPMENT = [
+  "Balanza", "Mechero Bunsen", "Probeta", "Matraz", "Pipeta", "Bureta",
+  "Tubo de ensayo", "Vaso de precipitado", "Termómetro", "Plancha de calentamiento",
+  "Campana de extracción", "Embudo",
+];
+
+/* ---------------- Estado ---------------- */
+const state = {
+  view: "loading",          // loading | auth | app
+  session: null,
+  profile: null,            // { id, full_name, email, role }
+  authMode: "login",        // login | signup
+  authError: "",
+  authNotice: "",
+  showPass: false,
+  busy: false,
+  labs: [],
+  currentLabId: null,
+  parts: [],
+  profiles: [],             // todos los usuarios (para asignar / mostrar nombres)
+  assignByPart: {},         // { part_id: [user_id, ...] }
+  photosByPart: {},         // { part_id: [ {id, storage_path, uploaded_by, created_at} ] }
+};
+
+const isAdmin = () => state.profile && state.profile.role === "admin";
+
+/* ---------------- Utilidades DOM ---------------- */
+const $root = document.getElementById("root");
+function el(tag, attrs, children) {
+  const e = document.createElement(tag);
+  if (attrs) for (const k in attrs) {
+    const v = attrs[k];
+    if (v == null || v === false) continue;
+    if (k === "class") e.className = v;
+    else if (k === "html") e.innerHTML = v;
+    else if (k === "text") e.textContent = v;
+    else if (k === "style" && typeof v === "object") Object.assign(e.style, v);
+    else if (k.startsWith("on") && typeof v === "function") e.addEventListener(k.slice(2).toLowerCase(), v);
+    else if (k in e && k !== "list") { try { e[k] = v; } catch (_) { e.setAttribute(k, v); } }
+    else e.setAttribute(k, v);
+  }
+  if (children != null) (Array.isArray(children) ? children : [children]).forEach(c => {
+    if (c == null || c === false) return;
+    e.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
+  });
+  return e;
+}
+function escapeHtml(s) { return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+function initialsOf(name, email) {
+  const base = (name && name.trim()) || (email || "").split("@")[0] || "?";
+  const parts = base.trim().split(/\s+/);
+  return ((parts[0]?.[0] || "") + (parts[1]?.[0] || "")).toUpperCase() || base[0].toUpperCase();
+}
+function colorFor(id) {
+  let h = 0; const s = String(id || "x"); for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 360;
+  return `oklch(60% 0.14 ${h})`;
+}
+function fmtDate(d) {
+  if (!d) return "";
+  const dt = new Date(d); if (isNaN(dt)) return "";
+  const mons = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+  return `${dt.getDate()} ${mons[dt.getMonth()]} ${dt.getFullYear()}`;
+}
+
+const toastHost = document.getElementById("toast-host");
+function toast(msg, kind = "") {
+  const icon = kind === "ok" ? ICON.check({ size: 16 }) : kind === "err" ? ICON.warn({ size: 16 }) : "";
+  const t = el("div", { class: "toast " + kind, html: icon + "<span></span>" });
+  t.querySelector("span").textContent = msg;
+  toastHost.appendChild(t);
+  setTimeout(() => { t.style.transition = "opacity .3s, transform .3s"; t.style.opacity = "0"; t.style.transform = "translateY(8px)"; setTimeout(() => t.remove(), 320); }, 2800);
+}
+
+function logErr(ctx, error) {
+  console.error("[" + ctx + "]", error);
+  const msg = (error && (error.message || error.error_description || error.hint || error.code)) || "error desconocido";
+  toast(ctx + ": " + msg, "err");
+}
+
+function openModal(build) {
+  const back = el("div", { class: "modal-back" });
+  const modal = el("div", { class: "modal" });
+  const close = () => back.remove();
+  back.addEventListener("click", e => { if (e.target === back) close(); });
+  build(modal, close);
+  back.appendChild(modal);
+  document.body.appendChild(back);
+  return close;
+}
+
+/* ============================================================= *
+ *  AUTH
+ * ============================================================= */
+async function loadProfile() {
+  const uid = state.session?.user?.id;
+  if (!uid) { state.profile = null; return; }
+  const { data, error } = await supabase.from("profiles").select("*").eq("id", uid).maybeSingle();
+  if (error) { console.error(error); }
+  // fallback si el trigger aún no creó el perfil
+  state.profile = data || { id: uid, full_name: state.session.user.user_metadata?.full_name || "", email: state.session.user.email, role: "member" };
+}
+
+async function applySession(session) {
+  state.session = session || null;
+  if (session) {
+    await loadProfile();
+    state.view = "app";
+    await loadLabs();
+    await loadProfiles();
+    subscribeRealtime();
+  } else {
+    unsubscribeRealtime();
+    state.profile = null; state.labs = []; state.parts = []; state.currentLabId = null;
+    state.view = "auth";
+  }
+  render();
+}
+
+supabase.auth.onAuthStateChange((event, session) => {
+  // diferir para evitar bloqueos al llamar a supabase dentro del callback
+  setTimeout(() => { applySession(session); }, 0);
+});
+
+async function doSignup(full_name, email, password) {
+  state.busy = true; state.authError = ""; state.authNotice = ""; render();
+  const { data, error } = await supabase.auth.signUp({
+    email, password, options: { data: { full_name } },
+  });
+  state.busy = false;
+  if (error) { state.authError = traducirError(error.message); render(); return; }
+  if (!data.session) {
+    // requiere confirmación por correo
+    state.authMode = "login";
+    state.authNotice = "Cuenta creada. Revisa tu correo para confirmarla y luego inicia sesión.";
+    render();
+  }
+  // si hay sesión, onAuthStateChange se encarga
+}
+async function doLogin(email, password) {
+  state.busy = true; state.authError = ""; state.authNotice = ""; render();
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  state.busy = false;
+  if (error) { state.authError = traducirError(error.message); render(); }
+  // éxito → onAuthStateChange
+}
+async function doLogout() { await supabase.auth.signOut(); }
+
+function traducirError(msg) {
+  const m = (msg || "").toLowerCase();
+  if (m.includes("invalid login")) return "Correo o contraseña incorrectos.";
+  if (m.includes("already registered")) return "Ese correo ya está registrado. Inicia sesión.";
+  if (m.includes("confirm")) return "Debes confirmar tu correo antes de entrar.";
+  if (m.includes("password")) return "La contraseña debe tener al menos 6 caracteres.";
+  return msg || "Ocurrió un error.";
+}
+
+/* ============================================================= *
+ *  DATOS — labs & partes
+ * ============================================================= */
+async function loadLabs() {
+  const { data, error } = await supabase.from("labs").select("*").order("created_at", { ascending: false });
+  if (error) { console.error(error); toast("No se pudieron cargar los labs", "err"); state.labs = []; return; }
+  state.labs = data || [];
+}
+async function loadParts() {
+  if (!state.currentLabId) { state.parts = []; return; }
+  const { data, error } = await supabase.from("parts").select("*").eq("lab_id", state.currentLabId).order("position", { ascending: true }).order("created_at", { ascending: true });
+  if (error) { console.error(error); toast("No se pudieron cargar las partes", "err"); state.parts = []; return; }
+  state.parts = data || [];
+}
+async function createLab(fields) {
+  const { data, error } = await supabase.from("labs").insert({ ...fields, created_by: state.session.user.id }).select().single();
+  if (error) { toast(error.message, "err"); return null; }
+  await loadLabs();
+  return data;
+}
+async function archiveLab(lab, archived) {
+  const { error } = await supabase.from("labs").update({ archived }).eq("id", lab.id);
+  if (error) { toast(error.message, "err"); return; }
+  await loadLabs(); render();
+  toast(archived ? "Lab archivado" : "Lab reactivado", "ok");
+}
+async function deleteLab(lab) {
+  const { error } = await supabase.from("labs").delete().eq("id", lab.id);
+  if (error) { toast(error.message, "err"); return; }
+  state.currentLabId = null;
+  await loadLabs(); render();
+  toast("Laboratorio eliminado", "ok");
+}
+async function addPart(title, description = null, equipment = []) {
+  console.log("[addPart] intentando…", { lab_id: state.currentLabId, title, admin: isAdmin(), uid: state.session?.user?.id });
+  if (!state.currentLabId) { toast("No hay lab seleccionado", "err"); return; }
+  const pos = state.parts.length;
+  const { data, error } = await supabase.from("parts")
+    .insert({ lab_id: state.currentLabId, title, position: pos, description, equipment }).select();
+  if (error) { logErr("Agregar parte", error); return; }
+  console.log("[addPart] OK:", data);
+  await loadLabData(); render();
+  toast("Parte agregada", "ok");
+}
+async function updatePart(id, fields) {
+  const { error } = await supabase.from("parts").update(fields).eq("id", id);
+  if (error) { toast(error.message, "err"); return; }
+  await loadLabData(); render();
+}
+async function deletePart(id) {
+  const { error } = await supabase.from("parts").delete().eq("id", id);
+  if (error) { logErr("Borrar parte", error); return; }
+  await loadLabData(); render();
+}
+
+/* ----- usuarios, asignaciones, fotos ----- */
+const profileById = id => state.profiles.find(p => p.id === id) || null;
+
+async function loadProfiles() {
+  const { data, error } = await supabase.from("profiles").select("id, full_name, email, role").order("created_at", { ascending: true });
+  if (error) { console.error(error); return; }
+  state.profiles = data || [];
+}
+
+// carga partes + asignaciones + fotos del lab actual (en bloque)
+async function loadLabData() {
+  await loadParts();
+  state.assignByPart = {}; state.photosByPart = {};
+  const ids = state.parts.map(p => p.id);
+  if (!ids.length) return;
+  const [aRes, pRes] = await Promise.all([
+    supabase.from("assignments").select("part_id, user_id").in("part_id", ids),
+    supabase.from("photos").select("*").in("part_id", ids).order("created_at", { ascending: true }),
+  ]);
+  if (aRes.error) console.error(aRes.error);
+  if (pRes.error) console.error(pRes.error);
+  (aRes.data || []).forEach(a => { (state.assignByPart[a.part_id] ||= []).push(a.user_id); });
+  (pRes.data || []).forEach(p => { (state.photosByPart[p.part_id] ||= []).push(p); });
+}
+
+function canAct(part) {
+  if (isAdmin()) return true;
+  const uid = state.session?.user?.id;
+  return (state.assignByPart[part.id] || []).includes(uid);
+}
+
+async function togglePartDone(part) {
+  const done = !!part.completed_at;
+  const fields = done
+    ? { completed_at: null, completed_by: null }
+    : { completed_at: new Date().toISOString(), completed_by: state.session.user.id };
+  const { error } = await supabase.from("parts").update(fields).eq("id", part.id);
+  if (error) { toast(error.message, "err"); return; }
+  await loadLabData(); render();
+  if (!done) askForPhoto(part);
+}
+
+async function uploadPhoto(part, file) {
+  try {
+    const ext = ((file.type && file.type.split("/")[1]) || "jpg").replace("jpeg", "jpg");
+    const path = `${state.currentLabId}/${part.id}/${crypto.randomUUID()}.${ext}`;
+    const { error: upErr } = await supabase.storage.from("evidence").upload(path, file, { contentType: file.type || "image/jpeg", upsert: false });
+    if (upErr) { toast("No se pudo subir la foto: " + upErr.message, "err"); return; }
+    const { error: insErr } = await supabase.from("photos").insert({ part_id: part.id, uploaded_by: state.session.user.id, storage_path: path });
+    if (insErr) { toast("Foto subida pero no registrada: " + insErr.message, "err"); return; }
+    await loadLabData(); render();
+    toast("Foto adjuntada como evidencia", "ok");
+  } catch (e) { console.error(e); toast("Error al subir la foto", "err"); }
+}
+
+async function signedUrl(path) {
+  const { data, error } = await supabase.storage.from("evidence").createSignedUrl(path, 3600);
+  if (error) { console.error(error); return null; }
+  return data?.signedUrl || null;
+}
+
+/* ----- descargas (evidencia) ----- */
+function sanitize(s) {
+  return (s || "x").replace(/[^a-zA-Z0-9 _-]/g, "").trim().replace(/\s+/g, "_").slice(0, 40) || "x";
+}
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = el("a", { href: url, download: filename });
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+}
+async function downloadStoragePhoto(photo, filename) {
+  const { data, error } = await supabase.storage.from("evidence").download(photo.storage_path);
+  if (error || !data) { logErr("Descargar foto", error || { message: "sin datos" }); return false; }
+  downloadBlob(data, filename);
+  return true;
+}
+function photoExt(path) { return ((path || "").split(".").pop() || "jpg").split("?")[0].toLowerCase(); }
+
+// recopila todas las fotos del lab actual con nombres legibles
+function collectLabPhotos(lab) {
+  const items = [];
+  state.parts.forEach((part, i) => {
+    (state.photosByPart[part.id] || []).forEach((ph, j) => {
+      const base = `${sanitize(lab.name)}_${String(i + 1).padStart(2, "0")}_${sanitize(part.title)}`;
+      const suffix = j > 0 ? `_${j + 1}` : "";
+      items.push({ photo: ph, filename: `${base}${suffix}.${photoExt(ph.storage_path)}` });
+    });
+  });
+  return items;
+}
+
+// descarga de las fotos de UNA parte
+async function downloadPartPhotos(part) {
+  const lab = state.labs.find(l => l.id === state.currentLabId);
+  const photos = state.photosByPart[part.id] || [];
+  if (!photos.length) { toast("Esta parte no tiene fotos", "err"); return; }
+  const idx = state.parts.findIndex(p => p.id === part.id);
+  const base = `${sanitize(lab ? lab.name : "lab")}_${String(idx + 1).padStart(2, "0")}_${sanitize(part.title)}`;
+  for (let j = 0; j < photos.length; j++) {
+    const suffix = j > 0 ? `_${j + 1}` : "";
+    await downloadStoragePhoto(photos[j], `${base}${suffix}.${photoExt(photos[j].storage_path)}`);
+    if (photos.length > 1) await new Promise(r => setTimeout(r, 300));
+  }
+  toast(photos.length > 1 ? `Descargando ${photos.length} fotos` : "Descargando foto", "ok");
+}
+
+// descarga masiva: carpeta directa (escritorio) o descargas individuales (móvil)
+async function exportLabPhotos(lab) {
+  const items = collectLabPhotos(lab);
+  if (!items.length) { toast("Este lab no tiene fotos todavía", "err"); return; }
+
+  if (window.showDirectoryPicker) {
+    let dir;
+    try { dir = await window.showDirectoryPicker({ mode: "readwrite" }); }
+    catch (e) { if (e && e.name === "AbortError") return; console.error(e); }
+    if (!dir) { // navegador sin permiso: cae a descargas
+      for (const it of items) { await downloadStoragePhoto(it.photo, it.filename); await new Promise(r => setTimeout(r, 300)); }
+      return;
+    }
+    const used = new Set(); let ok = 0;
+    toast(`Guardando ${items.length} foto(s)…`);
+    for (const it of items) {
+      const { data, error } = await supabase.storage.from("evidence").download(it.photo.storage_path);
+      if (error || !data) { console.error(error); continue; }
+      let name = it.filename, n = 1;
+      while (used.has(name)) { const d = it.filename.lastIndexOf("."); name = it.filename.slice(0, d) + "_" + (n++) + it.filename.slice(d); }
+      used.add(name);
+      try {
+        const fh = await dir.getFileHandle(name, { create: true });
+        const w = await fh.createWritable(); await w.write(data); await w.close(); ok++;
+      } catch (e) { console.error(e); }
+    }
+    toast(`Se guardaron ${ok} foto(s) en la carpeta`, "ok");
+  } else {
+    toast(`Descargando ${items.length} foto(s)…`);
+    for (const it of items) { await downloadStoragePhoto(it.photo, it.filename); await new Promise(r => setTimeout(r, 300)); }
+  }
+}
+
+async function setAssignments(part, selectedIds) {
+  const current = new Set(state.assignByPart[part.id] || []);
+  const next = new Set(selectedIds);
+  const toAdd = [...next].filter(id => !current.has(id));
+  const toRemove = [...current].filter(id => !next.has(id));
+  if (toAdd.length) {
+    const rows = toAdd.map(uid => ({ part_id: part.id, user_id: uid, assigned_by: state.session.user.id }));
+    const { error } = await supabase.from("assignments").insert(rows);
+    if (error) { toast(error.message, "err"); return; }
+  }
+  for (const uid of toRemove) {
+    const { error } = await supabase.from("assignments").delete().eq("part_id", part.id).eq("user_id", uid);
+    if (error) { toast(error.message, "err"); return; }
+  }
+  await loadLabData(); render();
+  toast("Asignaciones guardadas", "ok");
+}
+
+/* ============================================================= *
+ *  RENDER
+ * ============================================================= */
+function render() {
+  $root.innerHTML = "";
+  if (state.view === "loading") { $root.appendChild(el("div", { class: "loading", html: '<div class="spinner"></div>' })); return; }
+  if (state.view === "auth") { $root.appendChild(renderAuth()); return; }
+  $root.appendChild(renderApp());
+}
+
+/* ---------- Auth screen ---------- */
+function renderAuth() {
+  const signup = state.authMode === "signup";
+  const wrap = el("div", { class: "auth-wrap" });
+  const card = el("div", { class: "auth-card" });
+  card.appendChild(el("div", { class: "auth-head", html:
+    `<span class="mark">${ICON.flask({ size: 25 })}</span><h1>Bitácora de Lab</h1><p>${signup ? "Crea tu cuenta para tu equipo" : "Inicia sesión para continuar"}</p>` }));
+
+  if (state.authError) { const b = el("div", { class: "auth-err", html: ICON.warn({ size: 16 }) + "<span></span>" }); b.querySelector("span").textContent = state.authError; card.appendChild(b); }
+  if (state.authNotice) { const b = el("div", { class: "auth-ok", html: ICON.check({ size: 16 }) + "<span></span>" }); b.querySelector("span").textContent = state.authNotice; card.appendChild(b); }
+
+  const form = el("form");
+  let nameInput;
+  if (signup) {
+    nameInput = el("input", { type: "text", autocomplete: "name", placeholder: "Tu nombre", required: true });
+    form.appendChild(el("div", { class: "field" }, [ el("label", { text: "Nombre" }), el("div", { class: "field-input" }, [ iconNode(ICON.user({ size: 16 })), nameInput ]) ]));
+  }
+  const emailInput = el("input", { type: "email", autocomplete: "email", placeholder: "correo@ejemplo.com", required: true });
+  const passInput = el("input", { type: state.showPass ? "text" : "password", autocomplete: signup ? "new-password" : "current-password", placeholder: "Contraseña", required: true });
+  form.appendChild(el("div", { class: "field" }, [ el("label", { text: "Correo" }), el("div", { class: "field-input" }, [ iconNode(ICON.mail({ size: 16 })), emailInput ]) ]));
+  const reveal = el("span", { class: "reveal icon-btn", style: { width: "26px", height: "26px" }, html: ICON.eye({ size: 16 }),
+    onclick: () => { state.showPass = !state.showPass; passInput.type = state.showPass ? "text" : "password"; passInput.focus(); } });
+  form.appendChild(el("div", { class: "field" }, [ el("label", { text: "Contraseña" }), el("div", { class: "field-input" }, [ iconNode(ICON.lock({ size: 16 })), passInput, reveal ]) ]));
+
+  const submit = el("button", { type: "submit", class: "btn-primary", disabled: state.busy,
+    html: (signup ? ICON.user({ size: 17 }) : ICON.out({ size: 17 })) + `<span>${state.busy ? "Un momento…" : (signup ? "Crear cuenta" : "Entrar")}</span>` });
+  form.appendChild(submit);
+  form.addEventListener("submit", e => {
+    e.preventDefault();
+    if (state.busy) return;
+    if (signup) doSignup(nameInput.value.trim(), emailInput.value.trim(), passInput.value);
+    else doLogin(emailInput.value.trim(), passInput.value);
+  });
+  card.appendChild(form);
+
+  const sw = el("div", { class: "auth-switch" });
+  sw.appendChild(document.createTextNode(signup ? "¿Ya tienes cuenta? " : "¿Nuevo en el equipo? "));
+  sw.appendChild(el("button", { type: "button", text: signup ? "Inicia sesión" : "Crea una cuenta",
+    onclick: () => { state.authMode = signup ? "login" : "signup"; state.authError = ""; state.authNotice = ""; render(); } }));
+  card.appendChild(sw);
+
+  wrap.appendChild(card);
+  return wrap;
+}
+function iconNode(html) { const t = el("template"); t.innerHTML = html.trim(); return t.content.firstChild; }
+
+/* ---------- App ---------- */
+function renderApp() {
+  const app = el("div", { class: "app" });
+  app.appendChild(renderHeader());
+  if (!state.currentLabId) app.appendChild(renderLabList());
+  else app.appendChild(renderLabDetail());
+  return app;
+}
+
+function renderHeader() {
+  const head = el("header", { class: "head" });
+  const top = el("div", { class: "head-top" });
+  top.appendChild(el("span", { class: "mark", html: ICON.flask({ size: 25 }) }));
+  top.appendChild(el("div", { class: "head-titles", html: `<span class="eyebrow">Química · Laboratorio</span><h1>Bitácora de Lab</h1>` }));
+
+  const p = state.profile || {};
+  const who = el("div", { class: "whoami" });
+  who.appendChild(el("span", { class: "role-badge " + (isAdmin() ? "admin" : "member"), text: isAdmin() ? "Admin" : "Equipo" }));
+  who.appendChild(el("span", { class: "who-name", text: (p.full_name || p.email || "").split("@")[0] }));
+  who.appendChild(el("span", { class: "who-av", style: { background: colorFor(p.id) }, text: initialsOf(p.full_name, p.email) }));
+  who.appendChild(el("button", { class: "icon-btn", title: "Cerrar sesión", html: ICON.out({ size: 16 }), onclick: doLogout }));
+  top.appendChild(who);
+  head.appendChild(top);
+  return head;
+}
+
+function renderLabList() {
+  const wrap = el("div");
+  const sec = el("div", { class: "section-row" });
+  sec.appendChild(el("h2", { text: "Laboratorios" }));
+  if (isAdmin()) {
+    sec.appendChild(el("span", { class: "spacer" }));
+    sec.appendChild(el("button", { class: "btn-sm ghost", html: ICON.doc({ size: 15 }) + " Desde PDF", onclick: importLabFromPdf }));
+    sec.appendChild(el("button", { class: "btn-sm", html: ICON.plus({ size: 15 }) + " Nuevo lab", onclick: openCreateLab }));
+  }
+  wrap.appendChild(sec);
+
+  const visible = state.labs.filter(l => isAdmin() || !l.archived);
+  if (!visible.length) {
+    wrap.appendChild(el("div", { class: "card" }, el("div", { class: "empty", html:
+      `<div class="e-ic">${ICON.beaker({ size: 26 })}</div><h3>${isAdmin() ? "Aún no hay laboratorios" : "Sin laboratorios todavía"}</h3><p>${isAdmin() ? "Crea el primero con “Nuevo lab”." : "El administrador aún no ha creado labs."}</p>` })));
+    return wrap;
+  }
+  const grid = el("div", { class: "lab-grid" });
+  visible.forEach(lab => {
+    const tile = el("button", { class: "lab-tile" + (lab.archived ? " archived" : ""), onclick: () => openLab(lab.id) });
+    tile.appendChild(el("span", { class: "lab-ic", html: ICON.beaker({ size: 22 }) }));
+    const info = el("div", { class: "lab-info" });
+    info.appendChild(el("div", { class: "lab-name", text: lab.name }));
+    const sub = [fmtDate(lab.lab_date), lab.archived ? "archivado" : null].filter(Boolean).join(" · ");
+    info.appendChild(el("div", { class: "lab-sub", text: sub || (lab.description || "Toca para abrir") }));
+    tile.appendChild(info);
+    tile.appendChild(el("span", { class: "lab-arrow", html: ICON.chevR({ size: 18 }) }));
+    grid.appendChild(tile);
+  });
+  wrap.appendChild(grid);
+  return wrap;
+}
+
+function renderLabDetail() {
+  const lab = state.labs.find(l => l.id === state.currentLabId);
+  const wrap = el("div");
+  if (!lab) { state.currentLabId = null; return renderLabList(); }
+
+  const sec = el("div", { class: "section-row" });
+  sec.appendChild(el("button", { class: "back-btn", html: ICON.chevL({ size: 15 }) + " Labs", onclick: () => { state.currentLabId = null; render(); } }));
+  sec.appendChild(el("span", { class: "spacer" }));
+  if (isAdmin()) {
+    sec.appendChild(el("button", { class: "btn-sm", html: ICON.download({ size: 15 }) + " Descargar fotos", onclick: () => exportLabPhotos(lab) }));
+    sec.appendChild(el("button", { class: "btn-sm ghost", html: ICON.edit({ size: 15 }) + (lab.archived ? " Reactivar" : " Archivar"),
+      onclick: () => archiveLab(lab, !lab.archived) }));
+    sec.appendChild(el("button", { class: "btn-sm danger", html: ICON.trash({ size: 15 }) + " Borrar",
+      onclick: () => { if (confirm(`¿Borrar el laboratorio "${lab.name}" y todas sus partes? Esta acción no se puede deshacer.`)) deleteLab(lab); } }));
+  }
+  wrap.appendChild(sec);
+
+  const titleSec = el("div", { class: "section-row", style: { marginTop: "4px" } });
+  titleSec.appendChild(el("h2", { text: lab.name, style: { fontSize: "20px" } }));
+  wrap.appendChild(titleSec);
+  if (lab.description) wrap.appendChild(el("p", { text: lab.description, style: { margin: "0 2px 8px", fontSize: "13.5px", color: "oklch(52% 0.05 58)", lineHeight: "1.5" } }));
+
+  const card = el("div", { class: "card" });
+  if (isAdmin()) card.appendChild(renderAddPart());
+
+  if (!state.parts.length) {
+    card.appendChild(el("div", { class: "empty", html:
+      `<div class="e-ic">${ICON.sparkle({ size: 26 })}</div><h3>Sin partes todavía</h3><p>${isAdmin() ? "Agrega la primera parte arriba." : "El administrador aún no agrega partes."}</p>` }));
+  } else {
+    state.parts.forEach((part, i) => card.appendChild(renderPart(part, i)));
+  }
+  wrap.appendChild(card);
+
+  if (isAdmin() && state.parts.length) {
+    wrap.appendChild(el("div", { class: "section-row" }, el("p", { style: { fontSize: "12px", color: "oklch(56% 0.04 58)", lineHeight: "1.5" },
+      text: "Usa 👥 para asignar compañeros a cada parte. Cada persona asignada (y tú) puede marcarla hecha y subir una foto con 📷." })));
+  }
+  return wrap;
+}
+
+function renderAddPart() {
+  const bar = el("div", { class: "add-bar", style: { justifyContent: "center" } });
+  bar.appendChild(el("button", { class: "btn-sm", html: ICON.plus({ size: 15 }) + " Agregar parte", onclick: openAddPart }));
+  return bar;
+}
+
+function openAddPart() {
+  openModal((modal, close) => {
+    modal.appendChild(el("h2", { text: "Nueva parte" }));
+    modal.appendChild(el("p", { class: "modal-sub", text: "Agrega una parte/sección de este laboratorio." }));
+    const title = el("input", { class: "minput", placeholder: "Ej. Parte A — Fusión del hielo" });
+    const desc = el("textarea", { class: "ta", placeholder: "Instrucciones / qué hacer (opcional)" });
+    modal.appendChild(el("span", { class: "mlabel", text: "Título" })); modal.appendChild(title);
+    modal.appendChild(el("span", { class: "mlabel", text: "Descripción" })); modal.appendChild(desc);
+    modal.appendChild(el("span", { class: "mlabel", text: "Equipo / material (opcional)" }));
+    const chosen = new Set();
+    const chooser = el("div", { class: "chooser" });
+    EQUIPMENT.forEach(eq => {
+      const chip = el("button", { class: "choose-chip", "aria-pressed": false,
+        html: '<span class="dot" style="width:8px;height:8px;border-radius:50%;background:var(--accent)"></span>' + escapeHtml(eq),
+        onclick: () => { if (chosen.has(eq)) { chosen.delete(eq); chip.setAttribute("aria-pressed", "false"); } else { chosen.add(eq); chip.setAttribute("aria-pressed", "true"); } } });
+      chooser.appendChild(chip);
+    });
+    modal.appendChild(chooser);
+    const actions = el("div", { class: "modal-actions" });
+    actions.appendChild(el("button", { class: "btn-sm ghost", text: "Cancelar", onclick: close }));
+    actions.appendChild(el("button", { class: "btn-primary", html: ICON.plus({ size: 16 }) + " Agregar",
+      onclick: async () => {
+        const v = title.value.trim(); if (!v) { title.focus(); return; }
+        close();
+        await addPart(v, desc.value.trim() || null, [...chosen]);
+      } }));
+    modal.appendChild(actions);
+    setTimeout(() => title.focus(), 50);
+  });
+}
+
+function renderPart(part, i) {
+  const done = !!part.completed_at;
+  const act = canAct(part);
+  const assigned = state.assignByPart[part.id] || [];
+  const photos = state.photosByPart[part.id] || [];
+  const row = el("div", { class: "part" + (done ? " done" : "") });
+
+  // izquierda: botón de completar (si puede actuar) o número de orden
+  if (act) {
+    row.appendChild(el("button", { class: "part-check" + (done ? " on" : ""),
+      title: done ? "Marcar como pendiente" : "Marcar hecha",
+      html: done ? ICON.check({ size: 14 }) : "", onclick: () => togglePartDone(part) }));
+  } else {
+    row.appendChild(el("span", { class: "pnum", html: done ? ICON.check({ size: 14 }) : String(i + 1) }));
+  }
+
+  const body = el("div", { class: "pbody" });
+  body.appendChild(el("div", { class: "ptitle", text: part.title }));
+  if (part.description) body.appendChild(el("div", { class: "pdesc", text: part.description }));
+
+  const meta = el("div", { class: "pmeta" });
+  (part.equipment || []).forEach(eq => meta.appendChild(el("span", { class: "chip", html: '<span class="cdot"></span>' + escapeHtml(eq) })));
+  if (done) {
+    const by = profileById(part.completed_by);
+    const byName = by ? " · " + escapeHtml((by.full_name || by.email || "").split("@")[0]) : "";
+    meta.appendChild(el("span", { class: "pill-done", html: ICON.check({ size: 11 }) + " Hecha" + byName }));
+  }
+  if (assigned.length) {
+    const avs = el("span", { class: "avatars" });
+    assigned.forEach(uid => avs.appendChild(avatarNode(profileById(uid), uid)));
+    meta.appendChild(avs);
+  }
+  if (meta.childNodes.length) body.appendChild(meta);
+
+  // botón de instrucciones detalladas (pasos del PDF + preguntas)
+  const hasSteps = Array.isArray(part.steps) && part.steps.length;
+  if (hasSteps || isAdmin()) {
+    body.appendChild(el("button", { class: "detail-btn",
+      html: ICON.list({ size: 14 }) + " Instrucciones detalladas" + (hasSteps ? ` · ${part.steps.length}` : ""),
+      onclick: () => openPartDetail(part) }));
+  }
+
+  // fotos de evidencia + botón para agregar
+  if (photos.length || act) {
+    const pr = el("div", { class: "photo-row" });
+    photos.forEach(ph => {
+      const img = el("img", { class: "photo-thumb", alt: "evidencia", onclick: () => openLightbox(ph, part) });
+      signedUrl(ph.storage_path).then(u => { if (u) img.src = u; });
+      pr.appendChild(img);
+    });
+    if (act) pr.appendChild(el("button", { class: "photo-add", title: "Agregar foto", html: ICON.camera({ size: 18 }), onclick: () => pickPhoto(part) }));
+    if (photos.length && isAdmin()) pr.appendChild(el("button", { class: "photo-add photo-dl", title: "Descargar foto(s) de esta parte", html: ICON.download({ size: 17 }), onclick: () => downloadPartPhotos(part) }));
+    body.appendChild(pr);
+  }
+  row.appendChild(body);
+
+  if (isAdmin()) {
+    const actions = el("div", { class: "pactions" });
+    actions.appendChild(el("button", { class: "icon-btn", title: "Asignar personas", html: ICON.users({ size: 15 }), onclick: () => openAssign(part) }));
+    actions.appendChild(el("button", { class: "icon-btn", title: "Editar", html: ICON.edit({ size: 15 }), onclick: () => openEditPart(part) }));
+    actions.appendChild(el("button", { class: "icon-btn", title: "Eliminar", html: ICON.trash({ size: 15 }),
+      onclick: () => { if (confirm(`¿Eliminar la parte "${part.title}"?`)) deletePart(part.id); } }));
+    row.appendChild(actions);
+  }
+  return row;
+}
+
+function avatarNode(profile, uid) {
+  const me = uid === state.session?.user?.id;
+  const name = profile ? (profile.full_name || profile.email || "") : "—";
+  return el("span", { class: "av" + (me ? " me" : ""), title: name, style: { background: colorFor(uid) },
+    text: profile ? initialsOf(profile.full_name, profile.email) : "?" });
+}
+
+/* ---------- Modals ---------- */
+function openCreateLab() {
+  openModal((modal, close) => {
+    modal.appendChild(el("h2", { text: "Nuevo laboratorio" }));
+    modal.appendChild(el("p", { class: "modal-sub", text: "Crea una sesión de laboratorio con sus partes." }));
+    const name = el("input", { class: "minput", placeholder: "Ej. Lab 4 — Cambios Físicos y Químicos" });
+    const desc = el("textarea", { class: "ta", placeholder: "Descripción / objetivo (opcional)" });
+    const date = el("input", { class: "minput", type: "date" });
+    modal.appendChild(el("span", { class: "mlabel", text: "Nombre" })); modal.appendChild(name);
+    modal.appendChild(el("span", { class: "mlabel", text: "Descripción" })); modal.appendChild(desc);
+    modal.appendChild(el("span", { class: "mlabel", text: "Fecha" })); modal.appendChild(date);
+    const actions = el("div", { class: "modal-actions" });
+    actions.appendChild(el("button", { class: "btn-sm ghost", text: "Cancelar", onclick: close }));
+    actions.appendChild(el("button", { class: "btn-primary", html: ICON.check({ size: 16 }) + " Crear lab",
+      onclick: async () => {
+        const v = name.value.trim(); if (!v) { name.focus(); return; }
+        const lab = await createLab({ name: v, description: desc.value.trim() || null, lab_date: date.value || null });
+        close();
+        if (lab) { toast("Laboratorio creado", "ok"); openLab(lab.id); }
+      } }));
+    modal.appendChild(actions);
+    setTimeout(() => name.focus(), 50);
+  });
+}
+
+/* ---------- Importar lab desde PDF (Claude) ---------- */
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result).split(",")[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+function showLoading(text) {
+  const back = el("div", { class: "modal-back" });
+  const modal = el("div", { class: "modal center" });
+  modal.appendChild(el("div", { class: "modal-ic", style: { background: "var(--surface-2)" }, html: '<div class="spinner" style="width:24px;height:24px;border-width:3px"></div>' }));
+  modal.appendChild(el("h2", { text: "Un momento…" }));
+  modal.appendChild(el("p", { class: "modal-sub", text: text }));
+  back.appendChild(modal);
+  document.body.appendChild(back);
+  return () => back.remove();
+}
+function importLabFromPdf() {
+  const inp = el("input", { type: "file", accept: "application/pdf,.pdf", style: { display: "none" } });
+  inp.addEventListener("change", async () => {
+    const f = inp.files && inp.files[0]; inp.remove();
+    if (!f) return;
+    if (f.type && f.type !== "application/pdf") { toast("Selecciona un archivo PDF", "err"); return; }
+    if (f.size > 4 * 1024 * 1024) { toast("El PDF es muy grande (máx ~4 MB). Usa uno más liviano.", "err"); return; }
+    const done = showLoading("Leyendo el PDF con Claude (Sonnet 4.6)…");
+    try {
+      const b64 = await fileToBase64(f);
+      const r = await fetch("/api/parse-lab", {
+        method: "POST", headers: { "content-type": "application/json" },
+        body: JSON.stringify({ pdf_base64: b64, filename: f.name }),
+      });
+      const data = await r.json().catch(() => ({}));
+      done();
+      if (!r.ok) { toast(data.error || "No se pudo procesar el PDF", "err"); console.error(data); return; }
+      openPdfPreview(data);
+    } catch (e) { done(); console.error(e); toast("Error al procesar el PDF", "err"); }
+  });
+  document.body.appendChild(inp);
+  inp.click();
+}
+function openPdfPreview(data) {
+  const parts = Array.isArray(data.parts) ? data.parts.slice() : [];
+  openModal((modal, close) => {
+    modal.appendChild(el("h2", { text: "Revisar laboratorio" }));
+    modal.appendChild(el("p", { class: "modal-sub", text: `Claude detectó ${parts.length} parte(s). Revisa, ajusta el nombre y crea el laboratorio.` }));
+    modal.appendChild(el("span", { class: "mlabel", text: "Nombre del laboratorio" }));
+    const nameInput = el("input", { class: "minput", value: data.lab_name || "" });
+    modal.appendChild(nameInput);
+    modal.appendChild(el("span", { class: "mlabel", text: "Partes detectadas" }));
+    const list = el("div", { class: "assign-list" });
+    function renderList() {
+      list.innerHTML = "";
+      if (!parts.length) { list.appendChild(el("p", { class: "modal-sub", text: "No quedan partes." })); return; }
+      parts.forEach((p, i) => {
+        const item = el("div", { class: "assign-item", style: { cursor: "default", alignItems: "flex-start" } });
+        item.appendChild(el("span", { class: "ai-av", style: { background: "var(--surface-2)", color: "oklch(48% 0.06 56)" }, text: String(i + 1) }));
+        const info = el("div", { class: "ai-name" });
+        info.textContent = p.title || "(sin título)";
+        if (p.description) info.appendChild(el("small", { text: p.description }));
+        if (Array.isArray(p.steps) && p.steps.length) info.appendChild(el("small", { text: "📋 " + p.steps.length + " paso(s) detallado(s)" }));
+        if (Array.isArray(p.equipment) && p.equipment.length) info.appendChild(el("small", { text: "🧪 " + p.equipment.join(", ") }));
+        item.appendChild(info);
+        item.appendChild(el("button", { class: "icon-btn", title: "Quitar", html: ICON.trash({ size: 14 }), onclick: () => { parts.splice(i, 1); renderList(); } }));
+        list.appendChild(item);
+      });
+    }
+    renderList();
+    modal.appendChild(list);
+    const actions = el("div", { class: "modal-actions" });
+    actions.appendChild(el("button", { class: "btn-sm ghost", text: "Cancelar", onclick: close }));
+    actions.appendChild(el("button", { class: "btn-primary", html: ICON.check({ size: 16 }) + " Crear laboratorio",
+      onclick: async () => {
+        const name = nameInput.value.trim(); if (!name) { nameInput.focus(); return; }
+        close();
+        const done = showLoading("Creando laboratorio y partes…");
+        const lab = await createLab({ name, description: null, lab_date: null });
+        if (!lab) { done(); return; }
+        let okCount = 0, failCount = 0, stepsMissing = false, lastErr = null;
+        for (let i = 0; i < parts.length; i++) {
+          const p = parts[i];
+          const base = {
+            lab_id: lab.id, position: i,
+            title: (p.title || ("Parte " + (i + 1))).slice(0, 200),
+            description: p.description || null,
+            equipment: Array.isArray(p.equipment) ? p.equipment : [],
+          };
+          // intenta con 'steps'; si la columna no existe aún, reintenta sin ella
+          let res = await supabase.from("parts").insert({ ...base, steps: Array.isArray(p.steps) ? p.steps : [] });
+          if (res.error && /steps/i.test(res.error.message || "")) {
+            stepsMissing = true;
+            res = await supabase.from("parts").insert(base);
+          }
+          if (res.error) { failCount++; lastErr = res.error; console.error("insert parte", res.error); }
+          else okCount++;
+        }
+        state.currentLabId = lab.id;
+        await loadLabData();
+        done();
+        render();
+        if (failCount) toast(`Se crearon ${okCount}/${parts.length} partes. ${lastErr ? lastErr.message : ""}`, "err");
+        else if (stepsMissing) toast("Lab creado. Corre supabase-add-steps.sql para activar las instrucciones detalladas.", "ok");
+        else toast("Laboratorio creado desde PDF ✓", "ok");
+      } }));
+    modal.appendChild(actions);
+  });
+}
+
+/* ---------- Instrucciones detalladas (ver / editar) ---------- */
+function openPartDetail(part) {
+  openModal((modal, close) => {
+    modal.appendChild(el("h2", { text: part.title }));
+    if (part.description) modal.appendChild(el("p", { class: "modal-sub", text: part.description }));
+    const steps = Array.isArray(part.steps) ? part.steps : [];
+    if (steps.length) {
+      const wrap = el("div", { style: { marginTop: "6px" } });
+      steps.forEach((s, i) => {
+        const row = el("div", { class: "dstep" });
+        row.appendChild(el("div", { class: "dstep-n", text: String(i + 1) }));
+        const b = el("div", { class: "dstep-body" });
+        b.appendChild(el("div", { class: "dstep-text", text: s.instruction || "" }));
+        const qs = Array.isArray(s.questions) ? s.questions.filter(Boolean) : [];
+        if (qs.length) {
+          const dq = el("div", { class: "dquestions" });
+          dq.appendChild(el("span", { class: "dq-label", text: "Análisis" }));
+          const ul = el("ul");
+          qs.forEach(q => ul.appendChild(el("li", { text: q })));
+          dq.appendChild(ul);
+          b.appendChild(dq);
+        }
+        row.appendChild(b);
+        wrap.appendChild(row);
+      });
+      modal.appendChild(wrap);
+    } else {
+      modal.appendChild(el("p", { class: "modal-sub", style: { marginTop: "14px" },
+        text: isAdmin() ? "Esta parte no tiene instrucciones detalladas todavía. Toca 'Editar' para agregarlas, o crea el lab desde el PDF para que se llenen solas." : "No hay instrucciones detalladas para esta parte todavía." }));
+    }
+    const actions = el("div", { class: "modal-actions" });
+    if (isAdmin()) actions.appendChild(el("button", { class: "btn-sm ghost", html: ICON.edit({ size: 15 }) + " Editar", onclick: () => { close(); openPartDetailEditor(part); } }));
+    actions.appendChild(el("button", { class: "btn-primary", text: "Cerrar", onclick: close }));
+    modal.appendChild(actions);
+  });
+}
+
+function openPartDetailEditor(part) {
+  const steps = (Array.isArray(part.steps) ? part.steps : []).map(s => ({ instruction: s.instruction || "", questions: Array.isArray(s.questions) ? s.questions.slice() : [] }));
+  openModal((modal, close) => {
+    modal.appendChild(el("h2", { text: "Editar instrucciones detalladas" }));
+    modal.appendChild(el("p", { class: "modal-sub", text: part.title }));
+    const list = el("div");
+    function renderSteps() {
+      list.innerHTML = "";
+      steps.forEach((s, i) => {
+        const row = el("div", { class: "dstep" });
+        row.appendChild(el("div", { class: "dstep-n", text: String(i + 1) }));
+        const b = el("div", { class: "dstep-body" });
+        const ta = el("textarea", { class: "ta", value: s.instruction, placeholder: "Instrucción del paso (texto tal cual de la guía)" });
+        ta.addEventListener("input", () => { s.instruction = ta.value; });
+        b.appendChild(ta);
+        const qta = el("textarea", { class: "ta", value: (s.questions || []).join("\n"), placeholder: "Preguntas de análisis (una por línea)", style: { minHeight: "46px" } });
+        qta.addEventListener("input", () => { s.questions = qta.value.split("\n").map(x => x.trim()).filter(Boolean); });
+        b.appendChild(qta);
+        b.appendChild(el("button", { class: "link-btn", html: ICON.trash({ size: 13 }) + " Quitar paso", onclick: () => { steps.splice(i, 1); renderSteps(); } }));
+        row.appendChild(b);
+        list.appendChild(row);
+      });
+      if (!steps.length) list.appendChild(el("p", { class: "modal-sub", text: "Sin pasos. Agrega el primero." }));
+    }
+    renderSteps();
+    modal.appendChild(list);
+    modal.appendChild(el("button", { class: "btn-sm ghost", style: { marginTop: "10px" }, html: ICON.plus({ size: 14 }) + " Agregar paso", onclick: () => { steps.push({ instruction: "", questions: [] }); renderSteps(); } }));
+    const actions = el("div", { class: "modal-actions" });
+    actions.appendChild(el("button", { class: "btn-sm ghost", text: "Cancelar", onclick: close }));
+    actions.appendChild(el("button", { class: "btn-primary", html: ICON.check({ size: 16 }) + " Guardar",
+      onclick: async () => {
+        const clean = steps.map(s => ({ instruction: (s.instruction || "").trim(), questions: (s.questions || []).filter(Boolean) })).filter(s => s.instruction || s.questions.length);
+        close();
+        await updatePart(part.id, { steps: clean });
+        toast("Instrucciones guardadas", "ok");
+      } }));
+    modal.appendChild(actions);
+  });
+}
+
+function openEditPart(part) {
+  openModal((modal, close) => {
+    modal.appendChild(el("h2", { text: "Editar parte" }));
+    const title = el("input", { class: "minput", value: part.title });
+    const desc = el("textarea", { class: "ta", value: part.description || "", placeholder: "Instrucciones / qué hacer en esta parte" });
+    modal.appendChild(el("span", { class: "mlabel", text: "Título" })); modal.appendChild(title);
+    modal.appendChild(el("span", { class: "mlabel", text: "Descripción" })); modal.appendChild(desc);
+    modal.appendChild(el("span", { class: "mlabel", text: "Equipo / material" }));
+    const chosen = new Set(part.equipment || []);
+    const chooser = el("div", { class: "chooser" });
+    EQUIPMENT.forEach(eq => {
+      const chip = el("button", { class: "choose-chip", "aria-pressed": chosen.has(eq), html: '<span class="dot" style="width:8px;height:8px;border-radius:50%;background:var(--accent)"></span>' + escapeHtml(eq),
+        onclick: () => { if (chosen.has(eq)) { chosen.delete(eq); chip.setAttribute("aria-pressed", "false"); } else { chosen.add(eq); chip.setAttribute("aria-pressed", "true"); } } });
+      chooser.appendChild(chip);
+    });
+    modal.appendChild(chooser);
+    const actions = el("div", { class: "modal-actions" });
+    actions.appendChild(el("button", { class: "btn-sm ghost", text: "Cancelar", onclick: close }));
+    actions.appendChild(el("button", { class: "btn-primary", html: ICON.check({ size: 16 }) + " Guardar",
+      onclick: async () => {
+        const v = title.value.trim(); if (!v) { title.focus(); return; }
+        await updatePart(part.id, { title: v, description: desc.value.trim() || null, equipment: [...chosen] });
+        close(); toast("Parte actualizada", "ok");
+      } }));
+    modal.appendChild(actions);
+  });
+}
+
+function openAssign(part) {
+  openModal((modal, close) => {
+    modal.appendChild(el("h2", { text: "Asignar personas" }));
+    modal.appendChild(el("p", { class: "modal-sub", text: part.title }));
+    const selected = new Set(state.assignByPart[part.id] || []);
+    const list = el("div", { class: "assign-list" });
+    if (!state.profiles.length) {
+      list.appendChild(el("p", { class: "modal-sub", text: "Aún no hay usuarios registrados. Pídeles que creen su cuenta primero." }));
+    }
+    state.profiles.forEach(pr => {
+      const name = (pr.full_name || pr.email || "").split("@")[0];
+      const item = el("button", { type: "button", class: "assign-item" + (selected.has(pr.id) ? " on" : "") });
+      item.appendChild(el("span", { class: "ai-av", style: { background: colorFor(pr.id) }, text: initialsOf(pr.full_name, pr.email) }));
+      item.appendChild(el("span", { class: "ai-name", html: escapeHtml(name) + (pr.role === "admin" ? " <small>administrador</small>" : "") }));
+      item.appendChild(el("span", { class: "ai-check", html: ICON.check({ size: 13 }) }));
+      item.addEventListener("click", () => {
+        if (selected.has(pr.id)) { selected.delete(pr.id); item.classList.remove("on"); }
+        else { selected.add(pr.id); item.classList.add("on"); }
+      });
+      list.appendChild(item);
+    });
+    modal.appendChild(list);
+    const actions = el("div", { class: "modal-actions" });
+    actions.appendChild(el("button", { class: "btn-sm ghost", text: "Cancelar", onclick: close }));
+    actions.appendChild(el("button", { class: "btn-primary", html: ICON.check({ size: 16 }) + " Guardar",
+      onclick: async () => { close(); await setAssignments(part, [...selected]); } }));
+    modal.appendChild(actions);
+  });
+}
+
+// Hoja de opciones: Tomar foto (cámara) / Elegir de la galería / (opcional) Solo completar
+function choosePhotoSource(part, opts = {}) {
+  openModal((modal, close) => {
+    modal.classList.add("center");
+    modal.appendChild(el("div", { class: "modal-ic", html: ICON.camera({ size: 26 }) }));
+    modal.appendChild(el("h2", { text: opts.title || "Foto de evidencia" }));
+    const sub = el("p", { class: "modal-sub" });
+    sub.innerHTML = (opts.subtitle ? escapeHtml(opts.subtitle) + "<br>" : "") + "<b></b>";
+    sub.querySelector("b").textContent = part.title;
+    modal.appendChild(sub);
+
+    // galería (sin capture) — elige una foto existente del dispositivo
+    const galInput = el("input", { type: "file", accept: "image/*", style: { display: "none" } });
+    galInput.addEventListener("change", async () => { const f = galInput.files && galInput.files[0]; if (!f) return; close(); await uploadPhoto(part, f); });
+
+    const stack = el("div", { class: "stack" });
+    stack.appendChild(el("button", { class: "modal-btn primary", html: ICON.camera({ size: 18 }) + " Tomar foto", onclick: () => { close(); openCamera(part); } }));
+    stack.appendChild(el("button", { class: "modal-btn ghost", html: ICON.image({ size: 18 }) + " Elegir de la galería", onclick: () => galInput.click() }));
+    if (opts.allowSkip) stack.appendChild(el("button", { class: "modal-btn ghost", html: ICON.check({ size: 18 }) + " Solo marcar completada", onclick: close }));
+    else stack.appendChild(el("button", { class: "modal-btn ghost", text: "Cancelar", onclick: close }));
+    modal.appendChild(stack);
+    modal.appendChild(galInput);
+  });
+}
+
+// Cámara dentro de la app vía getUserMedia (no depende del atributo 'capture').
+async function openCamera(part, facing = "environment") {
+  // fallback si el navegador no soporta cámara web
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    const inp = el("input", { type: "file", accept: "image/*", style: { display: "none" } });
+    inp.setAttribute("capture", "environment");
+    inp.addEventListener("change", () => { const f = inp.files && inp.files[0]; if (f) uploadPhoto(part, f); inp.remove(); });
+    document.body.appendChild(inp); inp.click();
+    return;
+  }
+  let stream;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: facing } }, audio: false });
+  } catch (e) {
+    console.error("getUserMedia", e);
+    toast("No se pudo abrir la cámara (¿permiso denegado?). Usa 'Elegir de la galería'.", "err");
+    return;
+  }
+  const back = el("div", { class: "cam-back" });
+  const video = el("video");
+  video.autoplay = true; video.muted = true; video.playsInline = true;
+  video.setAttribute("playsinline", ""); video.setAttribute("muted", "");
+  video.srcObject = stream;
+  if (video.play) video.play().catch(() => {});
+  const stop = () => { try { stream.getTracks().forEach(t => t.stop()); } catch (_) {} back.remove(); };
+
+  const shutter = el("button", { class: "cam-shutter", title: "Capturar", onclick: () => {
+    const w = video.videoWidth, h = video.videoHeight;
+    if (!w || !h) { toast("Espera a que cargue la cámara…", "err"); return; }
+    const canvas = document.createElement("canvas");
+    canvas.width = w; canvas.height = h;
+    canvas.getContext("2d").drawImage(video, 0, 0, w, h);
+    canvas.toBlob(async (blob) => {
+      stop();
+      if (blob) { const file = new File([blob], "foto_" + Date.now() + ".jpg", { type: "image/jpeg" }); await uploadPhoto(part, file); }
+      else toast("No se pudo capturar la foto", "err");
+    }, "image/jpeg", 0.92);
+  } });
+  const closeBtn = el("button", { class: "cam-close", title: "Cerrar", html: ICON.close({ size: 22 }), onclick: stop });
+  const switchBtn = el("button", { class: "cam-switch", title: "Voltear cámara", html: ICON.camera({ size: 22 }),
+    onclick: () => { stop(); openCamera(part, facing === "environment" ? "user" : "environment"); } });
+  back.appendChild(video);
+  back.appendChild(el("div", { class: "cam-hint", text: part.title }));
+  back.appendChild(shutter);
+  back.appendChild(closeBtn);
+  back.appendChild(switchBtn);
+  document.body.appendChild(back);
+}
+
+function askForPhoto(part) {
+  choosePhotoSource(part, { title: "¡Parte completada!", subtitle: "¿Deseas adjuntar una fotografía de tu trabajo?", allowSkip: true });
+}
+
+function pickPhoto(part) {
+  choosePhotoSource(part, { title: "Agregar foto", allowSkip: false });
+}
+
+async function openLightbox(photo, part) {
+  const url = await signedUrl(photo.storage_path);
+  if (!url) { toast("No se pudo abrir la foto", "err"); return; }
+  const back = el("div", { class: "lightbox-back" });
+  back.addEventListener("click", () => back.remove());
+  back.appendChild(el("img", { class: "lightbox-img", src: url, alt: part ? part.title : "" }));
+  const up = profileById(photo.uploaded_by);
+  const upName = up ? (up.full_name || up.email || "").split("@")[0] + " · " : "";
+  back.appendChild(el("div", { class: "lightbox-cap", text: (part ? part.title + " · " : "") + upName + fmtDate(photo.created_at) }));
+  if (isAdmin()) {
+    const fname = `${part ? sanitize(part.title) : "evidencia"}.${photoExt(photo.storage_path)}`;
+    back.appendChild(el("button", { class: "lightbox-dl", html: ICON.download({ size: 16 }) + " Descargar",
+      onclick: async (e) => { e.stopPropagation(); await downloadStoragePhoto(photo, fname); } }));
+  }
+  document.body.appendChild(back);
+}
+
+/* ---------- nav ---------- */
+async function openLab(id) {
+  state.currentLabId = id;
+  state.parts = []; state.assignByPart = {}; state.photosByPart = {};
+  render();
+  await loadLabData();
+  render();
+}
+
+/* ============================================================= *
+ *  TIEMPO REAL (Supabase Realtime) — actualiza la vista sola
+ * ============================================================= */
+let realtimeChannel = null;
+let rtTimer = null;
+function subscribeRealtime() {
+  if (realtimeChannel) return; // ya suscrito
+  realtimeChannel = supabase.channel("labtodo-rt")
+    .on("postgres_changes", { event: "*", schema: "public", table: "labs" }, onRealtimeChange)
+    .on("postgres_changes", { event: "*", schema: "public", table: "parts" }, onRealtimeChange)
+    .on("postgres_changes", { event: "*", schema: "public", table: "assignments" }, onRealtimeChange)
+    .on("postgres_changes", { event: "*", schema: "public", table: "photos" }, onRealtimeChange)
+    .subscribe();
+}
+function unsubscribeRealtime() {
+  if (realtimeChannel) { try { supabase.removeChannel(realtimeChannel); } catch (_) {} realtimeChannel = null; }
+}
+function onRealtimeChange() {
+  // recarga con rebote para no refrescar 10 veces seguidas
+  clearTimeout(rtTimer);
+  rtTimer = setTimeout(async () => {
+    if (!state.session) return;
+    await loadLabs();
+    if (state.currentLabId) await loadLabData();
+    render();
+  }, 400);
+}
+
+/* ============================================================= *
+ *  BOOT
+ * ============================================================= */
+console.log("%cBitácora de Lab — build 2026-06-09-realtime", "color:#d76d5e;font-weight:bold");
+render();
+// onAuthStateChange dispara INITIAL_SESSION al cargar y llama a applySession.
+</script>
+</body>
+</html>

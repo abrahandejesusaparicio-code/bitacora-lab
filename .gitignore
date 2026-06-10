@@ -1,0 +1,23 @@
+# ===== SECRETOS — NUNCA subir =====
+key fir claude secret/
+supabase key & prject url/
+*.key
+.env
+.env.*
+
+# ===== Vercel =====
+.vercel
+
+# ===== Archivos personales / no son parte de la app =====
+Lab4-Cambios-Fisicos-Quimicos.html
+*.pdf
+*.zip
+todolist_extracted/
+lab imagenes/
+things to do/
+results from supabasefix.md
+
+# ===== Sistema / dependencias =====
+.DS_Store
+Thumbs.db
+node_modules/
