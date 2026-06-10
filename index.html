@@ -413,6 +413,82 @@
   @keyframes introdot { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: .45; } }
   .intro-sub { font-size: 12px; font-weight: 650; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); font-family: var(--meta-font); }
 
+  /* ===== Tabs (Bitácora / Equipos) ===== */
+  .tabbar { display: flex; gap: 6px; padding: 4px; margin: 4px 2px 14px; background: var(--surface-2); border: var(--border) solid var(--hair); border-radius: var(--radius-field); }
+  .tabbar .tab { position: relative; flex: 1; appearance: none; border: 0; background: transparent; cursor: pointer; font: inherit; font-size: 13.5px; font-weight: 650; color: oklch(50% 0.06 56); padding: 9px 10px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; transition: background .2s var(--ease-out), color .2s var(--ease-out); }
+  .tabbar .tab svg { width: 16px; height: 16px; }
+  .tabbar .tab.on { background: var(--surface); color: oklch(33% 0.1 48); box-shadow: 0 2px 6px -2px oklch(40% 0.08 50 / .3); }
+  .tab-badge { min-width: 17px; height: 17px; padding: 0 5px; border-radius: 999px; background: var(--primary); color: #fff; font-size: 10px; font-weight: 700; display: inline-grid; place-items: center; font-family: var(--meta-font); }
+
+  /* ===== Equipos: tarjetas ===== */
+  .team-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+  .team-card { position: relative; background: var(--surface); border: var(--border) solid var(--hair); border-radius: var(--radius-box); box-shadow: var(--shadow-card); padding: 14px; display: flex; flex-direction: column; gap: 11px; overflow: hidden; }
+  .team-card.mine { border-color: var(--accent-active); box-shadow: 0 0 0 1.5px var(--accent-active), var(--shadow-card); }
+  .team-card.mine::after { content: "Tu equipo"; position: absolute; top: 9px; right: 9px; font-size: 9px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: oklch(45% 0.13 255); background: oklch(90% 0.05 255 / .85); padding: 2px 7px; border-radius: 999px; font-family: var(--meta-font); }
+  .tc-head { display: flex; align-items: center; gap: 11px; }
+  .team-el { width: 46px; height: 46px; flex: none; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fff; line-height: 1; box-shadow: inset 0 1px 0 oklch(100% 0 0 / .35), 0 4px 10px -5px oklch(40% 0.08 50 / .5); }
+  .team-el .te-sym { font-size: 19px; font-weight: 800; letter-spacing: -0.02em; }
+  .team-el .te-no { font-size: 8px; font-weight: 700; opacity: .85; align-self: flex-start; margin: 3px 0 -2px 5px; }
+  .team-el.big { width: 64px; height: 64px; border-radius: 16px; }
+  .team-el.big .te-sym { font-size: 27px; }
+  .team-el.big .te-no { font-size: 10px; }
+  .tc-info { min-width: 0; }
+  .tc-name { font-size: 15px; font-weight: 700; color: oklch(34% 0.09 48); }
+  .tc-count { font-size: 11.5px; color: oklch(54% 0.05 58); font-family: var(--meta-font); margin-top: 1px; }
+  .team-members { display: flex; flex-direction: column; gap: 7px; }
+  .tm-row { display: flex; align-items: center; gap: 9px; }
+  .tm-row .av { margin-left: 0; }
+  .tm-name { font-size: 13.5px; font-weight: 600; color: var(--base-content); }
+  .tm-empty { font-size: 12.5px; color: oklch(58% 0.04 58); font-style: italic; }
+  .team-act { appearance: none; cursor: pointer; font: inherit; font-size: 12.5px; font-weight: 650; width: 100%; margin-top: 2px;
+    color: var(--primary); background: oklch(80% 0.06 30 / .14); border: 1.5px solid oklch(75% 0.08 30 / .35); border-radius: 10px; padding: 8px;
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: background .15s, transform .15s var(--ease-spring); }
+  .team-act:hover { background: oklch(80% 0.07 30 / .22); } .team-act:active { transform: scale(.97); }
+  .team-act svg { width: 14px; height: 14px; }
+  .team-act.pending { color: oklch(50% 0.1 70); background: oklch(90% 0.07 75 / .5); border-color: oklch(78% 0.1 75 / .5); }
+
+  /* solicitudes (admin) */
+  .req-card { padding: 12px 14px; margin-bottom: 14px; }
+  .req-head { font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--accent); font-family: var(--meta-font); margin-bottom: 8px; }
+  .req-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; }
+  .req-row + .req-row { border-top: 1px solid var(--hair); }
+  .req-txt { flex: 1; min-width: 0; }
+  .req-name { font-size: 14px; font-weight: 650; color: var(--base-content); }
+  .req-team { font-size: 12px; color: oklch(54% 0.05 58); }
+  .req-ok { color: oklch(45% 0.1 165); } .req-ok:hover { background: oklch(90% 0.06 165 / .6); color: oklch(40% 0.12 165); }
+  .req-no { color: var(--error); } .req-no:hover { background: oklch(90% 0.06 30 / .6); }
+  .roster-sum { font-size: 12.5px; font-weight: 600; color: oklch(48% 0.06 56); text-align: center; margin-top: 12px; font-family: var(--meta-font); }
+
+  /* ===== Canasta animada + revelado ===== */
+  .basket-back { position: fixed; inset: 0; z-index: 88; display: grid; place-items: center; padding: 24px; animation: fadeIn .2s var(--ease-out); }
+  .basket-back::before { content: ""; position: absolute; inset: 0; background: oklch(28% 0.04 60 / .5); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
+  .basket-stage { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 18px; animation: popIn .3s var(--ease-spring); }
+  .basket-svg { width: min(48vw, 180px); height: auto; transform-origin: center bottom; }
+  .basket-svg.s1 { animation: bShake1 .5s ease-in-out infinite; }
+  .basket-svg.s2 { animation: bShake2 .26s ease-in-out infinite; }
+  .basket-svg.s3 { animation: bShake3 .12s linear infinite; }
+  @keyframes bShake1 { 0%,100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg); } }
+  @keyframes bShake2 { 0%,100% { transform: translateX(-4px) rotate(-5deg); } 50% { transform: translateX(4px) rotate(5deg); } }
+  @keyframes bShake3 { 0% { transform: translate(-6px,0) rotate(-7deg); } 25% { transform: translate(6px,-3px) rotate(7deg); } 50% { transform: translate(-5px,2px) rotate(-6deg); } 75% { transform: translate(6px,-1px) rotate(6deg); } 100% { transform: translate(-6px,0) rotate(-7deg); } }
+  .bk-line { fill: none; stroke: oklch(40% 0.08 52); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+  .bk-weave { fill: none; stroke: oklch(40% 0.08 52 / .55); stroke-width: 3; stroke-linecap: round; }
+  .bk-atom { transform-box: fill-box; transform-origin: center; animation: bkAtom 1s ease-in-out infinite; }
+  .bk-atom.a2 { animation-delay: .2s; } .bk-atom.a3 { animation-delay: .45s; }
+  @keyframes bkAtom { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+  .basket-text { font-size: 14.5px; font-weight: 650; color: oklch(40% 0.08 52); }
+
+  .basket-reveal { position: relative; z-index: 2; width: min(560px, 92vw); animation: popIn .35s var(--ease-spring); }
+  .basket-reveal .reveal-title { text-align: center; font-size: 20px; font-weight: 780; letter-spacing: -0.02em; color: oklch(34% 0.09 48); margin-bottom: 16px; }
+  .reveal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; transition: filter .4s; }
+  .reveal-grid .team-card { animation: popIn .4s var(--ease-spring) both; }
+  .reveal-grid.dim { filter: blur(2.5px) brightness(.72); }
+  .basket-reveal .cele-btn { display: block; margin: 18px auto 0; }
+  .team-spotlight { position: fixed; z-index: 90; left: 50%; top: 50%; width: min(330px, 86vw); transform: translate(-50%, -50%) scale(.6); opacity: 0; animation: spotIn .55s var(--ease-spring) forwards; display: flex; flex-direction: column; align-items: stretch; gap: 12px; }
+  @keyframes spotIn { to { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
+  .team-spotlight .spot-label { text-align: center; font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); font-family: var(--meta-font); }
+  .team-spotlight .team-card { box-shadow: 0 0 0 2px var(--accent-active), 0 24px 60px -18px oklch(40% 0.1 45 / .6); }
+  .team-spotlight .cele-btn { margin: 0 auto; }
+
   @media (prefers-reduced-motion: reduce) { * { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; } }
 </style>
 </head>
@@ -471,9 +547,41 @@ const EQUIPMENT = [
   "Campana de extracción", "Embudo",
 ];
 
+/* ---------------- Elementos para nombrar equipos (símbolo, nombre en español, nº atómico, tono) ---------------- */
+const TEAM_ELEMENTS = [
+  { sym: "Cu", name: "Cobre",     no: 29, hue: 28  },
+  { sym: "Au", name: "Oro",       no: 79, hue: 85  },
+  { sym: "Ag", name: "Plata",     no: 47, hue: 250 },
+  { sym: "Fe", name: "Hierro",    no: 26, hue: 16  },
+  { sym: "Zn", name: "Zinc",      no: 30, hue: 195 },
+  { sym: "Ni", name: "Níquel",    no: 28, hue: 150 },
+  { sym: "Pt", name: "Platino",   no: 78, hue: 230 },
+  { sym: "Hg", name: "Mercurio",  no: 80, hue: 270 },
+  { sym: "Sn", name: "Estaño",    no: 50, hue: 210 },
+  { sym: "Co", name: "Cobalto",   no: 27, hue: 255 },
+  { sym: "Cr", name: "Cromo",     no: 24, hue: 165 },
+  { sym: "Ti", name: "Titanio",   no: 22, hue: 240 },
+  { sym: "Mn", name: "Manganeso", no: 25, hue: 320 },
+  { sym: "Mg", name: "Magnesio",  no: 12, hue: 130 },
+  { sym: "Al", name: "Aluminio",  no: 13, hue: 220 },
+  { sym: "Na", name: "Sodio",     no: 11, hue: 40  },
+  { sym: "K",  name: "Potasio",   no: 19, hue: 300 },
+  { sym: "Ca", name: "Calcio",    no: 20, hue: 60  },
+  { sym: "Li", name: "Litio",     no: 3,  hue: 350 },
+  { sym: "Ne", name: "Neón",      no: 10, hue: 200 },
+  { sym: "He", name: "Helio",     no: 2,  hue: 50  },
+  { sym: "I",  name: "Yodo",      no: 53, hue: 285 },
+  { sym: "Br", name: "Bromo",     no: 35, hue: 20  },
+  { sym: "W",  name: "Wolframio", no: 74, hue: 245 },
+];
+const elBySym = sym => TEAM_ELEMENTS.find(e => e.sym === sym) || { sym, name: sym, no: "", hue: 30 };
+const teamColor = sym => `oklch(62% 0.145 ${elBySym(sym).hue})`;
+const teamLabel = t => "Equipo " + (t ? (elBySym(t.element_symbol).name || t.element_name) : "");
+
 /* ---------------- Estado ---------------- */
 const state = {
   view: "loading",          // loading | auth | app
+  tab: "labs",              // labs | teams
   session: null,
   profile: null,            // { id, full_name, email, role }
   authMode: "login",        // login | signup
@@ -489,6 +597,9 @@ const state = {
   assignByPart: {},         // { part_id: [user_id, ...] }
   photosByPart: {},         // { part_id: [ {id, storage_path, uploaded_by, created_at} ] }
   realtimeOn: false,        // tiempo real conectado (indicador "EN VIVO")
+  teams: [],                // [ {id, element_symbol, element_name, created_at} ]
+  teamMembers: [],          // [ {team_id, user_id} ]
+  joinRequests: [],         // [ {id, team_id, user_id, status} ] (solo 'pending')
 };
 
 const isAdmin = () => state.profile && state.profile.role === "admin";
@@ -593,10 +704,12 @@ async function applySession(session) {
     state.view = "app";
     await loadLabs();
     await loadProfiles();
+    await loadTeams();
     subscribeRealtime();
   } else {
     unsubscribeRealtime();
     state.profile = null; state.labs = []; state.parts = []; state.currentLabId = null;
+    state.teams = []; state.teamMembers = []; state.joinRequests = []; state.tab = "labs";
     state.view = "auth";
   }
   render();
@@ -763,6 +876,123 @@ function canAct(part) {
   if (isAdmin()) return true;
   const uid = state.session?.user?.id;
   return (state.assignByPart[part.id] || []).includes(uid);
+}
+
+/* ============================================================= *
+ *  EQUIPOS — datos y lógica
+ * ============================================================= */
+async function loadTeams() {
+  const [tRes, mRes, rRes] = await Promise.all([
+    supabase.from("teams").select("*").order("created_at", { ascending: true }),
+    supabase.from("team_members").select("team_id, user_id"),
+    supabase.from("join_requests").select("*").eq("status", "pending").order("created_at", { ascending: true }),
+  ]);
+  if (tRes.error) console.error(tRes.error);
+  state.teams = tRes.data || [];
+  state.teamMembers = mRes.data || [];
+  state.joinRequests = rRes.data || [];
+}
+const membersOf = teamId => state.teamMembers.filter(m => m.team_id === teamId).map(m => m.user_id);
+const myTeam = () => {
+  const uid = state.session?.user?.id;
+  const m = state.teamMembers.find(x => x.user_id === uid);
+  return m ? state.teams.find(t => t.id === m.team_id) : null;
+};
+const myPendingRequest = () => {
+  const uid = state.session?.user?.id;
+  return state.joinRequests.find(r => r.user_id === uid) || null;
+};
+
+// Reparte n personas: parejas por defecto; si es impar, UN solo trío. (4->2+2, 5->3+2, 7->3+2+2, 9->3+2+2+2)
+function computeTeamSizes(n) {
+  if (n <= 0) return [];
+  if (n <= 3) return [n];
+  const teams = Math.floor(n / 2);
+  const sizes = new Array(teams).fill(2);
+  let rem = n - teams * 2;          // 0 (par) o 1 (impar)
+  let i = 0;
+  while (rem > 0) { sizes[i % teams]++; rem--; i++; }
+  return sizes;
+}
+function shuffled(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+
+// Admin: forma equipos desde la canasta (reemplaza TODO lo anterior).
+async function generateTeams(userIds) {
+  const ids = shuffled(userIds);
+  const sizes = computeTeamSizes(ids.length);
+  const els = shuffled(TEAM_ELEMENTS).slice(0, sizes.length);
+  // borra todo lo anterior (la cascada limpia miembros y solicitudes)
+  await supabase.from("join_requests").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+  await supabase.from("team_members").delete().neq("user_id", "00000000-0000-0000-0000-000000000000");
+  const del = await supabase.from("teams").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+  if (del.error) { logErr("Equipos", del.error); return false; }
+  // crea equipos
+  const teamRows = els.map(e => ({ element_symbol: e.sym, element_name: e.name }));
+  const ins = await supabase.from("teams").insert(teamRows).select();
+  if (ins.error || !ins.data) { logErr("Equipos", ins.error || { message: "no se crearon" }); return false; }
+  // arma filas de miembros segun los tamaños
+  const memberRows = [];
+  let cursor = 0;
+  ins.data.forEach((team, idx) => {
+    const take = sizes[idx] || 0;
+    for (let k = 0; k < take && cursor < ids.length; k++) memberRows.push({ team_id: team.id, user_id: ids[cursor++] });
+  });
+  if (memberRows.length) {
+    const mIns = await supabase.from("team_members").insert(memberRows);
+    if (mIns.error) { logErr("Equipos", mIns.error); return false; }
+  }
+  await loadTeams();
+  if (state.view === "app") render();
+  playBasketReveal();
+  if (realtimeChannel) { try { realtimeChannel.send({ type: "broadcast", event: "teams_generated", payload: {} }); } catch (_) {} }
+  return true;
+}
+
+// Miembro: solicita unirse a un equipo (una solicitud pendiente por persona).
+async function requestJoin(team) {
+  const uid = state.session?.user?.id;
+  if (!uid) return;
+  await supabase.from("join_requests").delete().eq("user_id", uid).eq("status", "pending");
+  const { error } = await supabase.from("join_requests").insert({ team_id: team.id, user_id: uid, status: "pending" });
+  if (error) { logErr("Solicitud", error); return; }
+  toast("Solicitud enviada al administrador", "ok");
+  await loadTeams(); render();
+}
+async function cancelMyRequest() {
+  const uid = state.session?.user?.id;
+  await supabase.from("join_requests").delete().eq("user_id", uid).eq("status", "pending");
+  await loadTeams(); render();
+}
+
+// Admin: aprueba una solicitud -> mueve a la persona a ese equipo.
+async function approveRequest(req) {
+  await supabase.from("team_members").delete().eq("user_id", req.user_id);     // sale de su equipo anterior (si tenía)
+  const ins = await supabase.from("team_members").insert({ team_id: req.team_id, user_id: req.user_id });
+  if (ins.error) { logErr("Aprobar", ins.error); return; }
+  await supabase.from("join_requests").delete().eq("id", req.id);
+  const prof = profileById(req.user_id);
+  const team = state.teams.find(t => t.id === req.team_id);
+  const userName = prof ? (prof.full_name || (prof.email || "").split("@")[0]) : "Alguien";
+  const teamName = teamLabel(team);
+  await loadTeams(); render();
+  celebrateJoin(userName, teamName);
+  if (realtimeChannel) { try { realtimeChannel.send({ type: "broadcast", event: "member_joined", payload: { user: userName, team: teamName } }); } catch (_) {} }
+}
+async function rejectRequest(req) {
+  await supabase.from("join_requests").delete().eq("id", req.id);
+  await loadTeams(); render();
+  toast("Solicitud rechazada");
+}
+async function clearAllTeams() {
+  await supabase.from("join_requests").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+  await supabase.from("team_members").delete().neq("user_id", "00000000-0000-0000-0000-000000000000");
+  await supabase.from("teams").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+  await loadTeams(); render();
+  toast("Equipos eliminados");
 }
 
 async function togglePartDone(part) {
@@ -967,9 +1197,25 @@ function iconNode(html) { const t = el("template"); t.innerHTML = html.trim(); r
 function renderApp() {
   const app = el("div", { class: "app" });
   app.appendChild(renderHeader());
-  if (!state.currentLabId) app.appendChild(renderLabList());
+  app.appendChild(renderTabs());
+  if (state.tab === "teams") app.appendChild(renderTeams());
+  else if (!state.currentLabId) app.appendChild(renderLabList());
   else app.appendChild(renderLabDetail());
   return app;
+}
+
+function renderTabs() {
+  const bar = el("div", { class: "tabbar" });
+  const pending = isAdmin() ? state.joinRequests.length : 0;
+  const mk = (id, label, icon, badge) => {
+    const b = el("button", { class: "tab" + (state.tab === id ? " on" : ""), html: icon + `<span>${label}</span>`,
+      onclick: () => { if (state.tab !== id) { state.tab = id; render(); } } });
+    if (badge) b.appendChild(el("span", { class: "tab-badge", text: String(badge) }));
+    return b;
+  };
+  bar.appendChild(mk("labs", "Bitácora de Lab", ICON.list({ size: 16 })));
+  bar.appendChild(mk("teams", "Equipos", ICON.users({ size: 16 }), pending));
+  return bar;
 }
 
 function renderHeader() {
@@ -992,6 +1238,277 @@ function renderHeader() {
   top.appendChild(who);
   head.appendChild(top);
   return head;
+}
+
+/* ============================================================= *
+ *  VISTA: EQUIPOS
+ * ============================================================= */
+function teamElTile(sym, big) {
+  const e = elBySym(sym);
+  return el("span", { class: "team-el" + (big ? " big" : ""), style: { background: teamColor(sym) },
+    html: `<span class="te-no">${e.no}</span><span class="te-sym">${e.sym}</span>` });
+}
+function teamCardNode(team, opts) {
+  opts = opts || {};
+  const uid = state.session?.user?.id;
+  const ids = membersOf(team.id);
+  const mine = ids.includes(uid);
+  const card = el("div", { class: "team-card" + (mine ? " mine" : "") + (opts.big ? " big" : "") });
+  const head = el("div", { class: "tc-head" });
+  head.appendChild(teamElTile(team.element_symbol, opts.big));
+  const info = el("div", { class: "tc-info" });
+  info.appendChild(el("div", { class: "tc-name", text: teamLabel(team) }));
+  info.appendChild(el("div", { class: "tc-count", text: ids.length === 1 ? "1 integrante" : ids.length + " integrantes" }));
+  head.appendChild(info);
+  card.appendChild(head);
+
+  const list = el("div", { class: "team-members" });
+  if (!ids.length) list.appendChild(el("div", { class: "tm-empty", text: "Sin integrantes" }));
+  ids.forEach(id => {
+    const p = profileById(id);
+    const name = p ? (p.full_name || (p.email || "").split("@")[0]) : "—";
+    const row = el("div", { class: "tm-row" });
+    row.appendChild(el("span", { class: "av" + (id === uid ? " me" : ""), style: { background: colorFor(id) }, text: initialsOf(p?.full_name, p?.email) }));
+    row.appendChild(el("span", { class: "tm-name", text: name }));
+    list.appendChild(row);
+  });
+  card.appendChild(list);
+
+  // Acción de miembro: solicitar unirse a este equipo
+  if (opts.actions && !isAdmin()) {
+    const pend = myPendingRequest();
+    if (pend && pend.team_id === team.id) {
+      card.appendChild(el("button", { class: "team-act pending", html: ICON.warn({ size: 14 }) + " Solicitud pendiente · Cancelar", onclick: cancelMyRequest }));
+    } else if (!mine) {
+      card.appendChild(el("button", { class: "team-act", html: ICON.plus({ size: 14 }) + " Solicitar unirme", onclick: () => openJoinConfirm(team) }));
+    }
+  }
+  return card;
+}
+
+function renderTeams() {
+  const wrap = el("div");
+  const sec = el("div", { class: "section-row" });
+  sec.appendChild(el("h2", { text: "Equipos" }));
+  if (isAdmin()) {
+    sec.appendChild(el("span", { class: "spacer" }));
+    if (state.teams.length) {
+      sec.appendChild(el("button", { class: "btn-sm ghost", html: ICON.trash({ size: 15 }) + " Vaciar", onclick: confirmClearTeams }));
+      sec.appendChild(el("button", { class: "btn-sm", html: ICON.sparkle({ size: 15 }) + " Rehacer", onclick: openRoster }));
+    } else {
+      sec.appendChild(el("button", { class: "btn-sm", html: ICON.sparkle({ size: 15 }) + " Formar equipos", onclick: openRoster }));
+    }
+  }
+  wrap.appendChild(sec);
+
+  // Solicitudes pendientes (solo admin)
+  if (isAdmin() && state.joinRequests.length) {
+    const rq = el("div", { class: "card req-card" });
+    rq.appendChild(el("div", { class: "req-head", text: "Solicitudes para unirse" }));
+    state.joinRequests.forEach(r => {
+      const p = profileById(r.user_id);
+      const team = state.teams.find(t => t.id === r.team_id);
+      const name = p ? (p.full_name || (p.email || "").split("@")[0]) : "—";
+      const row = el("div", { class: "req-row" });
+      row.appendChild(el("span", { class: "av", style: { background: colorFor(r.user_id) }, text: initialsOf(p?.full_name, p?.email) }));
+      const txt = el("div", { class: "req-txt" });
+      txt.appendChild(el("div", { class: "req-name", text: name }));
+      txt.appendChild(el("div", { class: "req-team", text: "quiere unirse a " + teamLabel(team) }));
+      row.appendChild(txt);
+      row.appendChild(el("button", { class: "icon-btn req-ok", title: "Aprobar", html: ICON.check({ size: 18 }), onclick: () => approveRequest(r) }));
+      row.appendChild(el("button", { class: "icon-btn req-no", title: "Rechazar", html: ICON.close({ size: 16 }), onclick: () => rejectRequest(r) }));
+      rq.appendChild(row);
+    });
+    wrap.appendChild(rq);
+  }
+
+  if (!state.teams.length) {
+    wrap.appendChild(el("div", { class: "card" }, el("div", { class: "empty", html:
+      `<div class="e-ic">${ICON.users({ size: 26 })}</div><h3>${isAdmin() ? "Aún no hay equipos" : "Todavía no hay equipos"}</h3><p>${isAdmin() ? "Pulsa “Formar equipos”, elige a los presentes y agita la canasta." : "El administrador aún no ha formado los equipos."}</p>` })));
+    return wrap;
+  }
+
+  const grid = el("div", { class: "team-grid" });
+  state.teams.forEach(t => grid.appendChild(teamCardNode(t, { actions: true })));
+  wrap.appendChild(grid);
+  return wrap;
+}
+
+function openJoinConfirm(team) {
+  openModal((modal, close) => {
+    modal.classList.add("center");
+    modal.appendChild(el("div", { class: "modal-ic", html: ICON.users({ size: 26 }) }));
+    modal.appendChild(el("h2", { text: "¿Unirte a " + teamLabel(team) + "?" }));
+    modal.appendChild(el("p", { class: "modal-sub", text: "Se enviará una solicitud al administrador para que la apruebe." }));
+    const stack = el("div", { class: "stack" });
+    stack.appendChild(el("button", { class: "modal-btn primary", html: ICON.check({ size: 18 }) + " Enviar solicitud",
+      onclick: () => { close(); requestJoin(team); } }));
+    stack.appendChild(el("button", { class: "modal-btn ghost", text: "Cancelar", onclick: close }));
+    modal.appendChild(stack);
+  });
+}
+
+function confirmClearTeams() {
+  openModal((modal, close) => {
+    modal.classList.add("center");
+    modal.appendChild(el("div", { class: "modal-ic", style: { background: "linear-gradient(160deg, oklch(70% 0.14 30), var(--error))" }, html: ICON.trash({ size: 26 }) }));
+    modal.appendChild(el("h2", { text: "¿Eliminar todos los equipos?" }));
+    modal.appendChild(el("p", { class: "modal-sub", text: "Se borrarán los equipos y las solicitudes pendientes. No se puede deshacer." }));
+    const stack = el("div", { class: "stack" });
+    stack.appendChild(el("button", { class: "modal-btn", style: { background: "linear-gradient(160deg, oklch(70% 0.14 30), var(--error))", color: "#fff" },
+      html: ICON.trash({ size: 18 }) + " Sí, eliminar", onclick: () => { close(); clearAllTeams(); } }));
+    stack.appendChild(el("button", { class: "modal-btn ghost", text: "Cancelar", onclick: close }));
+    modal.appendChild(stack);
+  });
+}
+
+// Admin: elegir presentes y agitar la canasta
+function openRoster() {
+  const selected = new Set(state.profiles.map(p => p.id)); // todos marcados por defecto
+  openModal((modal, close) => {
+    modal.appendChild(el("h2", { text: "¿Quiénes están presentes?" }));
+    modal.appendChild(el("p", { class: "modal-sub", text: "Marca a las personas presentes. La canasta los repartirá en parejas (y un trío si son impares)." }));
+    const list = el("div", { class: "assign-list" });
+    const summary = el("div", { class: "roster-sum" });
+    const refreshSum = () => {
+      const n = selected.size;
+      const sizes = computeTeamSizes(n);
+      summary.textContent = n < 2 ? "Selecciona al menos 2 personas." : `${n} presentes · ${sizes.length} equipo${sizes.length === 1 ? "" : "s"} (${sizes.join(" + ")})`;
+      shakeBtn.disabled = n < 2;
+    };
+    state.profiles.forEach(p => {
+      const on = selected.has(p.id);
+      const item = el("button", { class: "assign-item" + (on ? " on" : ""), type: "button" });
+      item.appendChild(el("span", { class: "ai-av", style: { background: colorFor(p.id) }, text: initialsOf(p.full_name, p.email) }));
+      const nm = el("div", { class: "ai-name", text: p.full_name || (p.email || "").split("@")[0] });
+      if (p.role === "admin") nm.appendChild(el("small", { text: "admin" }));
+      item.appendChild(nm);
+      item.appendChild(el("span", { class: "ai-check", html: ICON.check({ size: 13 }) }));
+      item.addEventListener("click", () => {
+        if (selected.has(p.id)) { selected.delete(p.id); item.classList.remove("on"); }
+        else { selected.add(p.id); item.classList.add("on"); }
+        refreshSum();
+      });
+      list.appendChild(item);
+    });
+    modal.appendChild(list);
+    modal.appendChild(summary);
+    const actions = el("div", { class: "modal-actions" });
+    actions.appendChild(el("button", { class: "btn-sm ghost", text: "Cancelar", onclick: close }));
+    const shakeBtn = el("button", { class: "btn-primary", html: ICON.sparkle({ size: 17 }) + "<span>Agitar la canasta</span>",
+      onclick: () => { if (selected.size < 2) return; close(); generateTeams([...selected]); } });
+    actions.appendChild(shakeBtn);
+    modal.appendChild(actions);
+    refreshSum();
+  });
+}
+
+/* ---------- Canasta animada + revelado de equipos ---------- */
+function basketSVG() {
+  return '<svg class="basket-svg" viewBox="0 0 200 200" aria-hidden="true">' +
+    // elementos saltando dentro/encima
+    '<g class="bk-atoms">' +
+      '<circle class="bk-atom a1" cx="80" cy="70" r="13"/>' +
+      '<circle class="bk-atom a2" cx="118" cy="64" r="11"/>' +
+      '<circle class="bk-atom a3" cx="100" cy="78" r="10"/>' +
+    '</g>' +
+    // cuerpo de la canasta (trapecio) estilo línea, como el matraz
+    '<path class="bk-line" d="M44,96 L156,96 L142,176 Q140,184 132,184 L68,184 Q60,184 58,176 Z"/>' +
+    // tejido
+    '<path class="bk-weave" d="M52,118 H148 M55,140 H145 M59,162 H141"/>' +
+    '<path class="bk-weave" d="M74,98 L68,182 M100,98 L100,184 M126,98 L132,182"/>' +
+    // borde
+    '<path class="bk-line" d="M40,96 Q40,86 50,86 L150,86 Q160,86 160,96 Q160,104 150,104 L50,104 Q40,104 40,96 Z" fill="oklch(96.5% 0.018 92)"/>' +
+    '</svg>';
+}
+function basketAtomLabels(host) {
+  const hues = [28, 16, 250];
+  host.querySelectorAll(".bk-atom").forEach((c, i) => {
+    c.setAttribute("fill", `oklch(70% 0.13 ${hues[i % hues.length]})`);
+  });
+}
+
+let basketBusy = false;
+function playBasketReveal() {
+  if (basketBusy) return;
+  basketBusy = true;
+  const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const back = el("div", { class: "basket-back" });
+  const stage = el("div", { class: "basket-stage", html: basketSVG() + '<div class="basket-text">Agitando la canasta…</div>' });
+  back.appendChild(stage);
+  document.body.appendChild(back);
+  const svg = stage.querySelector(".basket-svg");
+  basketAtomLabels(stage);
+
+  const finish = () => {
+    basketBusy = false;
+    back.style.transition = "opacity .35s"; back.style.opacity = "0";
+    setTimeout(() => back.remove(), 360);
+  };
+
+  const reveal = () => {
+    stage.remove();
+    const canvas = el("canvas", { class: "cele-confetti" });
+    back.appendChild(canvas);
+    const stop = confettiBurst(canvas, { count: 150, power: 12 });
+    const panel = el("div", { class: "basket-reveal" });
+    panel.appendChild(el("div", { class: "reveal-title", text: "¡Equipos formados!" }));
+    const grid = el("div", { class: "reveal-grid" });
+    state.teams.forEach((t, i) => {
+      const c = teamCardNode(t, {});
+      c.style.animationDelay = (i * 90) + "ms";
+      grid.appendChild(c);
+    });
+    panel.appendChild(grid);
+    back.appendChild(panel);
+
+    const mine = myTeam();
+    const closeBtn = el("button", { class: "cele-btn", text: "¡Listo!", onclick: () => { if (stop) stop(); finish(); } });
+
+    if (mine) {
+      const delay = 700 + state.teams.length * 90;
+      setTimeout(() => {
+        grid.classList.add("dim");
+        const spot = el("div", { class: "team-spotlight" });
+        spot.appendChild(el("div", { class: "spot-label", text: "Tu equipo" }));
+        spot.appendChild(teamCardNode(mine, { big: true }));
+        spot.appendChild(closeBtn);
+        back.appendChild(spot);
+      }, Math.min(delay, 1600));
+    } else {
+      panel.appendChild(closeBtn);
+    }
+    // cierre automático de respaldo
+    setTimeout(() => { if (basketBusy) { if (stop) stop(); finish(); } }, 9000);
+  };
+
+  if (reduce) { reveal(); return; }
+  // escalada de velocidad estilo "loot box"
+  svg.classList.add("s1");
+  setTimeout(() => { svg.classList.remove("s1"); svg.classList.add("s2"); }, 1100);
+  setTimeout(() => { svg.classList.remove("s2"); svg.classList.add("s3"); stage.querySelector(".basket-text").textContent = "¡Casi listo!"; }, 2200);
+  setTimeout(reveal, 3100);
+}
+
+/* ---------- Celebración al unirse a un equipo ---------- */
+function celebrateJoin(userName, teamName) {
+  const back = el("div", { class: "cele-back" });
+  const canvas = el("canvas", { class: "cele-confetti" });
+  back.appendChild(canvas);
+  const card = el("div", { class: "cele-card" });
+  card.appendChild(el("div", { class: "cele-flask", style: { background: "linear-gradient(160deg, var(--secondary-soft), var(--secondary))" }, html: ICON.users() }));
+  card.appendChild(el("h2", { class: "cele-title", text: "¡Nuevo integrante!" }));
+  card.appendChild(el("p", { class: "cele-sub", html: `<strong>${escapeHtml(userName)}</strong> se unió a <strong>${escapeHtml(teamName)}</strong>` }));
+  const btn = el("button", { class: "cele-btn", text: "¡Genial!" });
+  card.appendChild(btn);
+  back.appendChild(card);
+  document.body.appendChild(back);
+  const stop = confettiBurst(canvas, { count: 110, power: 10 });
+  let closed = false;
+  const close = () => { if (closed) return; closed = true; if (stop) stop(); back.style.transition = "opacity .3s"; back.style.opacity = "0"; setTimeout(() => back.remove(), 300); };
+  btn.addEventListener("click", close);
+  back.addEventListener("click", e => { if (e.target === back) close(); });
+  setTimeout(close, 3400);
 }
 
 function renderLabList() {
@@ -1809,9 +2326,21 @@ function subscribeRealtime() {
     .on("postgres_changes", { event: "*", schema: "public", table: "parts" }, onRealtimeChange)
     .on("postgres_changes", { event: "*", schema: "public", table: "assignments" }, onRealtimeChange)
     .on("postgres_changes", { event: "*", schema: "public", table: "photos" }, onRealtimeChange)
+    .on("postgres_changes", { event: "*", schema: "public", table: "teams" }, onRealtimeChange)
+    .on("postgres_changes", { event: "*", schema: "public", table: "team_members" }, onRealtimeChange)
+    .on("postgres_changes", { event: "*", schema: "public", table: "join_requests" }, onRealtimeChange)
     .on("broadcast", { event: "lab_done" }, (msg) => {
       const p = (msg && msg.payload) || {};
       if (p.labId && p.labId === state.currentLabId) celebrate("lab", null, p.name || "");
+    })
+    .on("broadcast", { event: "teams_generated" }, async () => {
+      await loadTeams();
+      if (state.view === "app") render();
+      playBasketReveal();
+    })
+    .on("broadcast", { event: "member_joined" }, (msg) => {
+      const p = (msg && msg.payload) || {};
+      if (p.user && p.team) celebrateJoin(p.user, p.team);
     })
     .subscribe((status) => {
       const on = status === "SUBSCRIBED";
@@ -1828,6 +2357,7 @@ function onRealtimeChange() {
   rtTimer = setTimeout(async () => {
     if (!state.session) return;
     await loadLabs();
+    await loadTeams();
     if (state.currentLabId) await loadLabData();
     render();
   }, 400);
