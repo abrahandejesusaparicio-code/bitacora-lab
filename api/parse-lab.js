@@ -2,7 +2,8 @@
 // para extraer el nombre del laboratorio y dividirlo en partes estructuradas.
 // La API key vive en process.env.ANTHROPIC_API_KEY (variable cifrada en Vercel).
 
-export const config = { maxDuration: 60 };
+// Guías largas (pasos copiados textualmente) pueden tardar > 60 s; damos margen.
+export const config = { maxDuration: 300 };
 
 const MODEL = "claude-sonnet-4-6";
 
@@ -71,7 +72,7 @@ export default async function handler(req, res) {
 
     const payload = {
       model: MODEL,
-      max_tokens: 8000,
+      max_tokens: 16000,
       tools: [tool],
       tool_choice: { type: "tool", name: "registrar_laboratorio" },
       messages: [{
