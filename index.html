@@ -503,6 +503,16 @@
   .team-spotlight .team-card { box-shadow: 0 0 0 2px var(--accent-active), 0 24px 60px -18px oklch(40% 0.1 45 / .6); }
   .team-spotlight .cele-btn { margin: 0 auto; }
 
+  /* ===== Onda al hacer clic ===== */
+  .click-ripple { position: fixed; z-index: 95; width: 20px; height: 20px; margin: -10px 0 0 -10px; border-radius: 50%;
+    pointer-events: none; background: var(--rc); border: 2px solid var(--rc);
+    mix-blend-mode: multiply; animation: clickRipple .62s var(--ease-out) forwards; }
+  @keyframes clickRipple {
+    0%   { transform: scale(.2); opacity: .5; }
+    55%  { opacity: .28; }
+    100% { transform: scale(6.5); opacity: 0; }
+  }
+
   @media (prefers-reduced-motion: reduce) { * { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; } }
 </style>
 </head>
@@ -2597,11 +2607,32 @@ function initBackgroundFX() {
 }
 
 /* ============================================================= *
+ *  Onda al hacer clic/tocar — color aleatorio de los elementos del fondo
+ * ============================================================= */
+function initClickRipple() {
+  const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduce) return;
+  // mismos tonos que las burbujas del fondo (H, O, C, N, Na, Cl)
+  const HUES = [8, 205, 222, 265, 35, 140];
+  window.addEventListener("pointerdown", (e) => {
+    if (e.pointerType === "mouse" && e.button !== 0) return;   // solo clic izquierdo
+    const h = HUES[Math.floor(Math.random() * HUES.length)];
+    const r = el("span", { class: "click-ripple" });
+    r.style.left = e.clientX + "px";
+    r.style.top = e.clientY + "px";
+    r.style.setProperty("--rc", `oklch(64% 0.17 ${h})`);
+    document.body.appendChild(r);
+    setTimeout(() => r.remove(), 640);
+  }, true);   // fase de captura: funciona aunque algún handler detenga la propagación
+}
+
+/* ============================================================= *
  *  BOOT
  * ============================================================= */
 console.log("%cBitácora de Lab — build 2026-06-10-autodeploy", "color:#d76d5e;font-weight:bold");
 render();
 initBackgroundFX();
+initClickRipple();
 // onAuthStateChange dispara INITIAL_SESSION al cargar y llama a applySession.
 </script>
 </body>
