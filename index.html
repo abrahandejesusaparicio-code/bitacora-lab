@@ -264,6 +264,7 @@
   .confirm-img { max-width: 100%; max-height: 52vh; border-radius: 14px; margin: 0 auto 4px; display: block; box-shadow: 0 8px 24px -12px oklch(40% 0.08 50 / .4); }
   .lightbox-del { position: fixed; top: max(16px, env(safe-area-inset-top)); left: 16px; z-index: 61; appearance: none; border: 0; cursor: pointer; font: inherit; font-size: 13px; font-weight: 650; color: #fff; background: oklch(52% 0.16 28); border-radius: 999px; padding: 9px 15px; display: inline-flex; align-items: center; gap: 7px; box-shadow: var(--shadow-lift); }
   .lightbox-del svg { width: 16px; height: 16px; }
+  .cam-fallback-link { display: block; margin: 12px auto 0; background: transparent; border: 0; cursor: pointer; font: inherit; font-size: 12px; font-weight: 600; color: oklch(54% 0.05 58); text-decoration: underline; }
   /* modal: photo prompt + assign */
   .modal-ic { width: 52px; height: 52px; border-radius: 16px; margin: 0 auto 14px; background: linear-gradient(160deg, var(--secondary-soft), var(--secondary)); display: grid; place-items: center; color: #fff; box-shadow: inset 0 1px 0 oklch(100% 0 0 /.3); }
   .modal-ic svg { width: 26px; height: 26px; }
@@ -1467,12 +1468,22 @@ function choosePhotoSource(part, opts = {}) {
     modal.appendChild(sub);
 
     const stack = el("div", { class: "stack" });
-    stack.appendChild(el("button", { class: "modal-btn primary", html: ICON.camera({ size: 18 }) + " Tomar foto", onclick: () => { close(); openCamera(part); } }));
+    stack.appendChild(el("button", { class: "modal-btn primary", html: ICON.camera({ size: 18 }) + " Tomar foto", onclick: () => { close(); openNativeCamera(part); } }));
     stack.appendChild(el("button", { class: "modal-btn ghost", html: ICON.image({ size: 18 }) + " Elegir de la galería", onclick: () => { close(); openGalleryPicker(part); } }));
     if (opts.allowSkip) stack.appendChild(el("button", { class: "modal-btn ghost", html: ICON.check({ size: 18 }) + " Solo marcar completada", onclick: close }));
     else stack.appendChild(el("button", { class: "modal-btn ghost", text: "Cancelar", onclick: close }));
     modal.appendChild(stack);
+    modal.appendChild(el("button", { class: "cam-fallback-link", text: "¿No se abrió la cámara? Usar cámara integrada", onclick: () => { close(); openCamera(part); } }));
   });
+}
+
+// Cámara NATIVA del teléfono (mejor enfoque y calidad). Algunos navegadores
+// (p. ej. Comet) la ignoran y abren archivos; para esos está la "cámara integrada".
+function openNativeCamera(part) {
+  const inp = el("input", { type: "file", accept: "image/*", style: { display: "none" } });
+  inp.setAttribute("capture", "environment");
+  inp.addEventListener("change", () => { const f = inp.files && inp.files[0]; inp.remove(); if (f) confirmPhoto(part, f, () => openNativeCamera(part), "Repetir"); });
+  document.body.appendChild(inp); inp.click();
 }
 
 // Elige una foto de la galería y la confirma antes de subir.
