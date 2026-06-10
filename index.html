@@ -524,7 +524,7 @@
   .part-bubble { position: relative; width: 92px; height: 92px; border-radius: 50%; display: grid; place-items: center; color: #fff;
     box-shadow: inset 0 2px 4px oklch(100% 0 0 / .4), 0 12px 26px -10px oklch(40% 0.1 45 / .6); }
   .pb-item.big .part-bubble { width: 120px; height: 120px; }
-  .part-bubble .pb-num { font-size: 32px; font-weight: 850; letter-spacing: -0.02em; text-shadow: 0 1px 3px oklch(30% 0.08 40 / .45); }
+  .part-bubble .pb-num { font-size: 32px; font-weight: 850; letter-spacing: -0.02em; text-shadow: 0 1px 1px oklch(100% 0 0 / .55); }
   .pb-item.big .part-bubble .pb-num { font-size: 42px; }
   .part-bubble .pb-el { position: absolute; right: -3px; bottom: -3px; width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; font-size: 12px; font-weight: 800; color: #fff; border: 2.5px solid var(--surface); box-shadow: 0 2px 6px -2px oklch(40% 0.08 50 / .5); }
   .pb-title { font-size: 12px; font-weight: 650; color: oklch(34% 0.09 48); text-align: center; line-height: 1.25; }
@@ -1586,9 +1586,12 @@ function partBubbleNode(part, opts) {
   const item = el("div", { class: "pb-item" + (mine ? " mine" : "") + (opts.big ? " big" : "") });
   const sym = team ? team.element_symbol : null;
   const col = team ? teamColor(sym) : "oklch(70% 0.02 90)";
+  const hue = elBySym(sym || "C").hue;
   const bubble = el("div", { class: "part-bubble" });
-  bubble.style.background = `radial-gradient(circle at 35% 30%, oklch(88% 0.07 ${elBySym(sym || "C").hue}), ${col})`;
-  bubble.appendChild(el("span", { class: "pb-num", text: String((idx >= 0 ? idx : part.position || 0) + 1) }));
+  bubble.style.background = `radial-gradient(circle at 35% 30%, oklch(88% 0.07 ${hue}), ${col})`;
+  const numEl = el("span", { class: "pb-num", text: String((idx >= 0 ? idx : part.position || 0) + 1) });
+  numEl.style.color = `oklch(33% 0.13 ${hue})`;     // tono oscuro del color del equipo: legible sobre la burbuja clara
+  bubble.appendChild(numEl);
   if (team) bubble.appendChild(el("span", { class: "pb-el", style: { background: col }, text: sym }));
   item.appendChild(bubble);
   item.appendChild(el("div", { class: "pb-title", text: part.title }));
