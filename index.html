@@ -691,20 +691,28 @@ const elBySym = sym => TEAM_ELEMENTS.find(e => e.sym === sym) || { sym, name: sy
 const teamColor = sym => `oklch(62% 0.145 ${elBySym(sym).hue})`;
 const teamLabel = t => "Equipo " + (t ? (elBySym(t.element_symbol).name || t.element_name) : "");
 
-/* ---------- Terminología por lab: "partes" o "fases" ----------
-   No es un campo nuevo: se detecta de cómo se titulan las partes del lab
-   (si dicen "Fase 1…", la app muestra "Fases"; si no, "Partes"). */
+/* ---------- Terminología por lab: "partes", "fases" o "experimentos" ----------
+   No es un campo nuevo: se detecta de cómo se titulan las partes del lab.
+   Cubre los dos formatos de guía vistos hasta ahora:
+   - "FASE A. El Enigma…", "Fase 1 — …"        (Indagación Nª2)
+   - "I. PARTE", "II.PARTE", "Parte I — …"      (Lab #4)            */
 const UNIT_TERMS = {
-  parte: { s: "parte", p: "partes", S: "Parte", P: "Partes" },
-  fase:  { s: "fase",  p: "fases",  S: "Fase",  P: "Fases"  },
+  parte:       { s: "parte",       p: "partes",       S: "Parte",       P: "Partes"       },
+  fase:        { s: "fase",        p: "fases",        S: "Fase",        P: "Fases"        },
+  experimento: { s: "experimento", p: "experimentos", S: "Experimento", P: "Experimentos" },
 };
 function unitTerm(parts) {
-  let f = 0, p = 0;
+  const n = { parte: 0, fase: 0, experimento: 0 };
   (parts || []).forEach(pt => {
-    const t = ((pt && pt.title) || "").trimStart().toLowerCase();
-    if (/^fases?\b/.test(t)) f++; else if (/^partes?\b/.test(t)) p++;
+    let t = ((pt && pt.title) || "").toLowerCase().trim();
+    // tolera numeración ANTES del término: "I. Parte", "IV.PARTE.", "2) Fase"
+    t = t.replace(/^[ivxlcdm\d]+\s*(?:[.):\-–—]+\s*|\s+)/, "");
+    const m = t.match(/^(fase|parte|experimento)s?\b/);
+    if (m) n[m[1]]++;
   });
-  return UNIT_TERMS[f > p ? "fase" : "parte"];
+  let best = "parte";
+  for (const k of ["fase", "experimento"]) if (n[k] > n[best]) best = k;
+  return UNIT_TERMS[best];
 }
 
 /* ---------------- Estado ---------------- */
@@ -934,12 +942,9 @@ async function loadLabs() {
   if (error) { console.error(error); toast("No se pudieron cargar los labs", "err"); state.labs = []; return; }
   state.labs = data || [];
 }
-async function loadParts() {
-  if (!state.currentLabId) { state.parts = []; return; }
-  const { data, error } = await supabase.from("parts").select("*").eq("lab_id", state.currentLabId).order("position", { ascending: true }).order("created_at", { ascending: true });
-  if (error) { console.error(error); toast("No se pudieron cargar las partes", "err"); state.parts = []; return; }
-  state.parts = data || [];
-}
+// Contador de recargas: si dos loadLabData se solapan (clic + realtime), la
+// respuesta vieja que llega tarde se descarta en vez de pisar datos frescos.
+let labDataSeq = 0;
 async function createLab(fields) {
   const { data, error } = await supabase.from("labs").insert({ ...fields, created_by: state.session.user.id }).select().single();
   if (error) { toast(error.message, "err"); return null; }
@@ -971,8 +976,9 @@ async function addPart(title, description = null, equipment = []) {
   toast(unitTerm(state.parts).S + " agregada", "ok");
 }
 async function updatePart(id, fields) {
-  const { error } = await supabase.from("parts").update(fields).eq("id", id);
+  const { data, error } = await supabase.from("parts").update(fields).eq("id", id).select("id");
   if (error) { toast(error.message, "err"); return; }
+  if (!data || !data.length) { toast("No se pudo guardar: no tienes permiso sobre esta " + unitTerm(state.parts).s + ".", "err"); return; }
   await loadLabData(); render();
 }
 async function deletePart(id) {
@@ -992,16 +998,21 @@ async function loadProfiles() {
 
 // carga partes + asignaciones + fotos del lab actual (en bloque)
 async function loadLabData() {
-  await loadParts();
-  state.assignByPart = {}; state.photosByPart = {};
-  const ids = state.parts.map(p => p.id);
-  if (!ids.length) return;
-  const [aRes, pRes] = await Promise.all([
+  const seq = ++labDataSeq;
+  if (!state.currentLabId) { state.parts = []; state.assignByPart = {}; state.photosByPart = {}; return; }
+  const { data: parts, error } = await supabase.from("parts").select("*").eq("lab_id", state.currentLabId).order("position", { ascending: true }).order("created_at", { ascending: true });
+  if (seq !== labDataSeq) return; // ya corre una recarga más nueva
+  if (error) { console.error(error); toast("No se pudieron cargar las partes", "err"); state.parts = []; return; }
+  const ids = (parts || []).map(p => p.id);
+  const [aRes, pRes] = ids.length ? await Promise.all([
     supabase.from("assignments").select("part_id, user_id").in("part_id", ids),
     supabase.from("photos").select("*").in("part_id", ids).order("created_at", { ascending: true }),
-  ]);
+  ]) : [{ data: [] }, { data: [] }];
+  if (seq !== labDataSeq) return;
   if (aRes.error) console.error(aRes.error);
   if (pRes.error) console.error(pRes.error);
+  state.parts = parts || [];
+  state.assignByPart = {}; state.photosByPart = {};
   (aRes.data || []).forEach(a => { (state.assignByPart[a.part_id] ||= []).push(a.user_id); });
   (pRes.data || []).forEach(p => { (state.photosByPart[p.part_id] ||= []).push(p); });
 }
@@ -1221,17 +1232,33 @@ async function declineSwap(req) {
   toast("Intercambio rechazado");
 }
 
+const partsToggling = new Set(); // evita dobles toques mientras el servidor responde
+
 async function togglePartDone(part) {
+  if (partsToggling.has(part.id)) return;
+  partsToggling.add(part.id);
+  try { await doTogglePartDone(part); }
+  finally { partsToggling.delete(part.id); }
+}
+
+async function doTogglePartDone(part) {
   const wasDone = !!part.completed_at;
   const fields = wasDone
     ? { completed_at: null, completed_by: null }
     : { completed_at: new Date().toISOString(), completed_by: state.session.user.id };
-  const { error } = await supabase.from("parts").update(fields).eq("id", part.id);
+  // .select() es clave: si RLS bloquea la escritura, Supabase NO da error,
+  // solo actualiza 0 filas. Sin esta verificación la app festejaba en falso.
+  const { data, error } = await supabase.from("parts").update(fields).eq("id", part.id).select("id");
   if (error) { toast(error.message, "err"); return; }
+  if (!data || !data.length) {
+    toast("No se pudo guardar: ya no estás asignado a esta " + unitTerm(state.parts).s + ". Pide al admin que te asigne de nuevo.", "err");
+    await loadLabData(); render();
+    return;
+  }
   await loadLabData(); render();
   if (wasDone) return; // descompletar no festeja
 
-  // hitos para la celebración
+  // hitos para la celebración (sobre los datos recién recargados)
   const myId = state.session.user.id;
   const labParts = state.parts;
   const allLabDone = labParts.length > 0 && labParts.every(p => p.completed_at);
@@ -2960,9 +2987,10 @@ async function openLab(id) {
  * ============================================================= */
 let realtimeChannel = null;
 let rtTimer = null;
+let rtRetryTimer = null;
 function subscribeRealtime() {
   if (realtimeChannel) return; // ya suscrito
-  realtimeChannel = supabase.channel("labtodo-rt")
+  const ch = supabase.channel("labtodo-rt")
     .on("postgres_changes", { event: "*", schema: "public", table: "labs" }, onRealtimeChange)
     .on("postgres_changes", { event: "*", schema: "public", table: "parts" }, onRealtimeChange)
     .on("postgres_changes", { event: "*", schema: "public", table: "assignments" }, onRealtimeChange)
@@ -2997,10 +3025,21 @@ function subscribeRealtime() {
       const p = (msg && msg.payload) || {};
       if (p.a && p.b) celebrateSwap(p);
     })
-    .subscribe((status) => {
-      const on = status === "SUBSCRIBED";
-      if (on !== state.realtimeOn) { state.realtimeOn = on; if (state.view === "app") render(); }
-    });
+    ;
+  realtimeChannel = ch;
+  ch.subscribe((status) => {
+    if (ch !== realtimeChannel) return; // aviso de un canal viejo ya descartado
+    const on = status === "SUBSCRIBED";
+    if (on !== state.realtimeOn) { state.realtimeOn = on; if (state.view === "app") render(); }
+    // si el canal muere (wifi inestable, pantalla bloqueada), reintenta solo
+    if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+      unsubscribeRealtime();
+      clearTimeout(rtRetryTimer);
+      rtRetryTimer = setTimeout(() => {
+        if (state.session) { subscribeRealtime(); onRealtimeChange(); }
+      }, 3000);
+    }
+  });
 }
 function unsubscribeRealtime() {
   if (realtimeChannel) { try { supabase.removeChannel(realtimeChannel); } catch (_) {} realtimeChannel = null; }
@@ -3011,13 +3050,29 @@ function onRealtimeChange() {
   clearTimeout(rtTimer);
   rtTimer = setTimeout(async () => {
     if (!state.session) return;
-    await loadLabs();
-    await loadTeams();
-    if (state.sectionLabId) await loadSections(state.sectionLabId);
-    if (state.currentLabId) await loadLabData();
-    render();
+    try {
+      await loadLabs();
+      await loadTeams();
+      if (state.sectionLabId) await loadSections(state.sectionLabId);
+      if (state.currentLabId) await loadLabData();
+      render();
+    } catch (e) { console.error("[realtime] recarga falló:", e); }
   }, 400);
 }
+
+// Al volver a la app (pantalla desbloqueada, pestaña visible o wifi de vuelta):
+// el WebSocket pudo morir y los eventos perdidos NO se reenvían, así que
+// recargamos los datos y revivimos el canal si hace falta.
+function refreshAfterWake() {
+  if (!state.session) return;
+  if (!realtimeChannel || (realtimeChannel.state !== "joined" && realtimeChannel.state !== "joining")) {
+    unsubscribeRealtime();
+    subscribeRealtime();
+  }
+  onRealtimeChange();
+}
+document.addEventListener("visibilitychange", () => { if (!document.hidden) refreshAfterWake(); });
+window.addEventListener("online", refreshAfterWake);
 
 /* ============================================================= *
  *  FONDO ANIMADO — burbujas de elementos que rebotan y se fusionan

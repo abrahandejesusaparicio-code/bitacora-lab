@@ -46,7 +46,7 @@ export default async function handler(req, res) {
             items: {
               type: "object",
               properties: {
-                title: { type: "string", description: "Título corto de la parte (ej. 'Parte A — Fusión del hielo'). Conserva la MISMA palabra que use la guía: si dice 'Fase' usa 'Fase', si dice 'Parte' usa 'Parte', si dice 'Experimento' usa 'Experimento'." },
+                title: { type: "string", description: "Título corto de la parte (ej. 'Parte I — Cambios con sulfato de cobre', 'Fase A — Clasificación inicial'). Conserva la MISMA palabra y el MISMO identificador que use la guía: si dice 'FASE A' usa 'Fase A', si dice 'I. PARTE' usa 'Parte I', si dice 'Experimento' usa 'Experimento'." },
                 description: { type: "string", description: "RESUMEN breve (1-3 frases) de qué se hace en esta parte. Aquí sí puedes resumir." },
                 equipment: { type: "array", items: { type: "string" }, description: "Equipo/material que se usa, si se menciona." },
                 steps: {
@@ -81,9 +81,12 @@ export default async function handler(req, res) {
           { type: "document", source: { type: "base64", media_type: "application/pdf", data: cleanB64 } },
           { type: "text", text:
             "Este es el PDF de una guía de laboratorio de química (probablemente en español). " +
-            "Extrae el nombre del laboratorio y divídelo en sus PARTES o secciones del procedimiento " +
-            "(por ejemplo 'Parte I', 'Parte II', 'Fase 1', o cada experimento). Conserva en el TÍTULO la " +
-            "misma palabra que use la guía (Parte / Fase / Experimento). Para cada parte da:\n" +
+            "Extrae el nombre del laboratorio y divídelo en sus PARTES o secciones del procedimiento. " +
+            "Las guías usan varios formatos de encabezado: 'I. PARTE', 'II.PARTE' (número romano antes de la palabra), " +
+            "'FASE A', 'FASE B' (letras), 'Parte 1', 'Fase 1', o un experimento por sección. Todos son secciones. " +
+            "Conserva en el TÍTULO la misma palabra que use la guía (Parte / Fase / Experimento) y su número o letra. " +
+            "NO conviertas en sección el cuestionario final ('Análisis de Resultados', 'Cuestionario'): sus preguntas " +
+            "van como 'questions' del último paso al que correspondan, o simplemente omítelas si son generales. Para cada parte da:\n" +
             "1) un TÍTULO corto;\n" +
             "2) una DESCRIPCIÓN breve (1-3 frases) — aquí sí puedes resumir;\n" +
             "3) el EQUIPO/material que se usa, si aparece;\n" +
