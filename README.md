@@ -7,7 +7,6 @@
 [![En vivo](https://img.shields.io/badge/demo-lab4cambiosmateria.vercel.app-d76d5e?logo=vercel&logoColor=white)](https://lab4cambiosmateria.vercel.app)
 [![Hosting](https://img.shields.io/badge/hosting-Vercel-000000?logo=vercel)](https://vercel.com)
 [![Backend](https://img.shields.io/badge/backend-Supabase-3FCF8E?logo=supabase&logoColor=white)](https://supabase.com)
-[![IA](https://img.shields.io/badge/PDF%20→%20partes-Claude-d4a27f?logo=anthropic&logoColor=white)](https://www.anthropic.com)
 [![JS](https://img.shields.io/badge/frontend-vanilla%20JS%2C%20sin%20build-f7df1e?logo=javascript&logoColor=black)](index.html)
 [![Licencia](https://img.shields.io/badge/licencia-MIT-blue)](LICENSE)
 
