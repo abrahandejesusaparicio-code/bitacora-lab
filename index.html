@@ -364,6 +364,10 @@
   .fl-bubble.b2 { animation-delay: .55s; } .fl-bubble.b3 { animation-delay: 1.05s; }
   @keyframes flBub { 0% { transform: translateY(2px) scale(.45); opacity: 0; } 30% { opacity: .9; } 100% { transform: translateY(-30px) scale(1); opacity: 0; } }
   .fl-text { font-size: 13.5px; font-weight: 600; color: oklch(52% 0.05 58); }
+  /* en la pantalla de carga inicial el matraz es más grande y prominente */
+  .loading .flask-loader { gap: 22px; }
+  .loading .flask-loader svg { width: 128px; }
+  .loading .flask-loader .fl-text { font-size: 16px; font-weight: 650; letter-spacing: .01em; }
 
   /* indicador de tiempo real */
   .live-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 700; letter-spacing: .04em; color: oklch(45% 0.1 165); font-family: var(--meta-font); margin-left: 8px; vertical-align: middle; }
@@ -1396,7 +1400,7 @@ async function setAssignments(part, selectedIds) {
  * ============================================================= */
 function render() {
   $root.innerHTML = "";
-  if (state.view === "loading") { $root.appendChild(el("div", { class: "loading" }, flaskLoader())); return; }
+  if (state.view === "loading") { $root.appendChild(el("div", { class: "loading" }, flaskLoader("Cargando…"))); return; }
   if (state.view === "auth") { $root.appendChild(renderAuth()); return; }
   $root.appendChild(renderApp());
 }
