@@ -1,11 +1,11 @@
-// Función serverless de Vercel: recibe un PDF (base64) y usa Claude (Sonnet 4.6)
+// Función serverless de Vercel: recibe un PDF (base64) y usa Claude (Haiku 4.5)
 // para extraer el nombre del laboratorio y dividirlo en partes estructuradas.
 // La API key vive en process.env.ANTHROPIC_API_KEY (variable cifrada en Vercel).
 
 // Guías largas (pasos copiados textualmente) pueden tardar > 60 s; damos margen.
 export const config = { maxDuration: 300 };
 
-const MODEL = "claude-sonnet-4-6";
+const MODEL = "claude-haiku-4-5";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {

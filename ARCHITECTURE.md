@@ -24,7 +24,7 @@ dónde tocar para agregar o cambiar cosas.
         │   Supabase                │   │  Vercel Function          │
         │   · Auth                  │   │  api/parse-lab.js         │
         │   · Postgres + RLS        │   │  · llama a Anthropic      │
-        │   · Storage (fotos)       │   │    (Claude Sonnet 4.6)    │
+        │   · Storage (fotos)       │   │    (Claude Haiku 4.5)     │
         │   · Realtime              │   │  · PDF → partes (JSON)    │
         └───────────────────────────┘   └───────────────────────────┘
 ```
@@ -44,7 +44,7 @@ dónde tocar para agregar o cambiar cosas.
 | Frontend        | HTML + CSS (OKLCH) + JavaScript vanilla (módulo ES), sin framework |
 | Cliente datos   | `@supabase/supabase-js@2` importado desde `https://esm.sh`         |
 | Auth/DB/Storage | Supabase (Postgres 15, Row Level Security, Storage, Realtime)      |
-| IA (PDF)        | Anthropic API — Claude **Sonnet 4.6** (`claude-sonnet-4-6`)        |
+| IA (PDF)        | Anthropic API — Claude **Haiku 4.5** (`claude-haiku-4-5`)          |
 | Serverless      | Vercel Functions (Node.js)                                         |
 | Hosting / CI    | Vercel (auto-deploy desde `main`)                                  |
 
@@ -146,7 +146,7 @@ propio proyecto de Supabase, cambia esos dos valores.
 la API de Anthropic con **tool use** (esquema `registrar_laboratorio`) para obtener
 `{ lab_name, parts[] }` ya estructurado. Devuelve ese JSON al frontend.
 
-- Modelo: `claude-sonnet-4-6` (constante `MODEL`).
+- Modelo: `claude-haiku-4-5` (constante `MODEL`).
 - Secreto: **`ANTHROPIC_API_KEY`** vía `process.env` (variable de entorno de Vercel,
   **nunca** en el código ni en el repo).
 - `maxDuration: 60` s.
