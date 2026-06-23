@@ -357,8 +357,9 @@
   .flask-loader { display: grid; place-items: center; gap: 14px; }
   .flask-loader svg { width: 66px; height: auto; }
   .fl-line { fill: none; stroke: oklch(40% 0.08 52); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
-  .fl-liquid { transform-box: fill-box; animation: flWave 1.9s ease-in-out infinite; }
-  @keyframes flWave { 0%,100% { transform: translateY(66px); } 50% { transform: translateY(58px); } }
+  /* el líquido sube (se llena) y baja en bucle para dar feedback de carga; el reposo (motion reducido) queda a media altura */
+  .fl-liquid { transform-box: fill-box; transform: translateY(40px); animation: flFill 2.4s ease-in-out infinite; }
+  @keyframes flFill { 0%,100% { transform: translateY(86px); } 50% { transform: translateY(16px); } }
   .fl-bubble { fill: oklch(98% 0.012 90 / .8); animation: flBub 1.7s ease-in infinite; }
   .fl-bubble.b2 { animation-delay: .55s; } .fl-bubble.b3 { animation-delay: 1.05s; }
   @keyframes flBub { 0% { transform: translateY(2px) scale(.45); opacity: 0; } 30% { opacity: .9; } 100% { transform: translateY(-30px) scale(1); opacity: 0; } }
