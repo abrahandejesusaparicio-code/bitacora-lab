@@ -273,6 +273,27 @@
   .lightbox-del { position: fixed; top: max(16px, env(safe-area-inset-top)); left: 16px; z-index: 61; appearance: none; border: 0; cursor: pointer; font: inherit; font-size: 13px; font-weight: 650; color: #fff; background: oklch(52% 0.16 28); border-radius: 999px; padding: 9px 15px; display: inline-flex; align-items: center; gap: 7px; box-shadow: var(--shadow-lift); }
   .lightbox-del svg { width: 16px; height: 16px; }
   .cam-fallback-link { display: block; margin: 12px auto 0; background: transparent; border: 0; cursor: pointer; font: inherit; font-size: 12px; font-weight: 600; color: oklch(54% 0.05 58); text-decoration: underline; }
+  /* cámara en modo ráfaga: tira de miniaturas capturadas + botón "Listo" */
+  .cam-tray { position: fixed; left: 0; right: 0; bottom: max(112px, calc(env(safe-area-inset-bottom) + 84px)); z-index: 81; display: none; gap: 8px; padding: 0 16px; overflow-x: auto; justify-content: center; scrollbar-width: none; }
+  .cam-tray::-webkit-scrollbar { display: none; }
+  .cam-back.has-queue .cam-tray { display: flex; }
+  .cam-back.previewing .cam-tray { display: none; }
+  .cam-tray-cell { position: relative; flex: none; }
+  .cam-tray-cell img { width: 46px; height: 46px; object-fit: cover; border-radius: 9px; border: 2px solid rgba(255,255,255,.85); box-shadow: 0 2px 8px rgba(0,0,0,.45); display: block; }
+  .cam-tray-del { position: absolute; top: -6px; right: -6px; width: 20px; height: 20px; border-radius: 50%; background: rgba(0,0,0,.72); color: #fff; border: 1px solid rgba(255,255,255,.5); display: grid; place-items: center; cursor: pointer; padding: 0; }
+  .cam-tray-del svg { width: 12px; height: 12px; }
+  .cam-done { display: none; position: fixed; bottom: max(40px, env(safe-area-inset-bottom)); left: 26px; z-index: 81; appearance: none; border: 0; cursor: pointer; font: inherit; font-size: 14px; font-weight: 700; border-radius: 999px; padding: 12px 18px; align-items: center; gap: 8px; box-shadow: var(--shadow-lift); background: linear-gradient(160deg, var(--secondary-soft), var(--secondary)); color: #fff; }
+  .cam-back.has-queue .cam-done { display: inline-flex; }
+  .cam-back.previewing .cam-done { display: none; }
+  .cam-done svg { width: 16px; height: 16px; }
+  .cam-back.has-queue .cam-switch { right: auto; left: 50%; transform: translateX(calc(-50% + 70px)); }
+  /* vista previa de varias fotos (galería): miniaturas con eliminar antes de subir */
+  .photo-tray { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 10px; margin: 6px 0 2px; max-height: 46vh; overflow-y: auto; padding: 2px; }
+  .tray-cell { position: relative; aspect-ratio: 1; }
+  .tray-cell img { width: 100%; height: 100%; object-fit: cover; border-radius: 11px; border: 1.5px solid var(--hair); box-shadow: 0 4px 12px -8px oklch(40% 0.08 50 / .5); display: block; }
+  .tray-del { position: absolute; top: -7px; right: -7px; width: 24px; height: 24px; border-radius: 50%; background: oklch(52% 0.16 28); color: #fff; border: 2px solid var(--surface); display: grid; place-items: center; cursor: pointer; padding: 0; box-shadow: 0 2px 6px -2px oklch(40% 0.08 50 / .6); transition: transform .15s var(--ease-spring); }
+  .tray-del:active { transform: scale(.88); }
+  .tray-del svg { width: 14px; height: 14px; }
   /* modal: photo prompt + assign */
   .modal-ic { width: 52px; height: 52px; border-radius: 16px; margin: 0 auto 14px; background: linear-gradient(160deg, var(--secondary-soft), var(--secondary)); display: grid; place-items: center; color: #fff; box-shadow: inset 0 1px 0 oklch(100% 0 0 /.3); }
   .modal-ic svg { width: 26px; height: 26px; }
@@ -1281,17 +1302,45 @@ async function doTogglePartDone(part) {
   runCelebrations(chain.slice(), part, () => { if (!hasPhoto) askForPhoto(part); });
 }
 
+// Sube un archivo a storage + lo registra en la tabla photos. No recarga ni
+// muestra toast (de eso se encargan quienes llaman). Devuelve { ok, error }.
+async function putPhoto(part, file) {
+  const ext = ((file.type && file.type.split("/")[1]) || "jpg").replace("jpeg", "jpg");
+  const path = `${state.currentLabId}/${part.id}/${crypto.randomUUID()}.${ext}`;
+  const { error: upErr } = await supabase.storage.from("evidence").upload(path, file, { contentType: file.type || "image/jpeg", upsert: false });
+  if (upErr) return { ok: false, error: upErr.message };
+  const { error: insErr } = await supabase.from("photos").insert({ part_id: part.id, uploaded_by: state.session.user.id, storage_path: path });
+  if (insErr) return { ok: false, error: insErr.message, orphan: true };
+  return { ok: true };
+}
+
 async function uploadPhoto(part, file) {
   try {
-    const ext = ((file.type && file.type.split("/")[1]) || "jpg").replace("jpeg", "jpg");
-    const path = `${state.currentLabId}/${part.id}/${crypto.randomUUID()}.${ext}`;
-    const { error: upErr } = await supabase.storage.from("evidence").upload(path, file, { contentType: file.type || "image/jpeg", upsert: false });
-    if (upErr) { toast("No se pudo subir la foto: " + upErr.message, "err"); return; }
-    const { error: insErr } = await supabase.from("photos").insert({ part_id: part.id, uploaded_by: state.session.user.id, storage_path: path });
-    if (insErr) { toast("Foto subida pero no registrada: " + insErr.message, "err"); return; }
+    const r = await putPhoto(part, file);
+    if (!r.ok) { toast((r.orphan ? "Foto subida pero no registrada: " : "No se pudo subir la foto: ") + r.error, "err"); return; }
     await loadLabData(); render();
     toast("Foto adjuntada como evidencia", "ok");
   } catch (e) { console.error(e); toast("Error al subir la foto", "err"); }
+}
+
+// Sube un lote de fotos en secuencia, tolerando errores parciales, con una sola
+// recarga al final. Para un solo archivo reutiliza uploadPhoto (su toast detallado).
+async function uploadPhotos(part, files) {
+  const list = (Array.isArray(files) ? files : [files]).filter(Boolean);
+  if (!list.length) return;
+  if (list.length === 1) return uploadPhoto(part, list[0]);
+  let ok = 0, fail = 0, firstErr = "";
+  toast(`Subiendo ${list.length} fotos…`);
+  for (const file of list) {
+    try {
+      const r = await putPhoto(part, file);
+      if (r.ok) ok++; else { fail++; firstErr = firstErr || r.error; }
+    } catch (e) { console.error(e); fail++; firstErr = firstErr || String((e && e.message) || e); }
+  }
+  await loadLabData(); render();
+  if (ok && !fail) toast(`${ok} fotos adjuntadas como evidencia`, "ok");
+  else if (ok && fail) toast(`${ok} subida(s), ${fail} fallaron`, "err");
+  else toast("No se pudieron subir las fotos: " + firstErr, "err");
 }
 
 async function signedUrl(path) {
@@ -2417,7 +2466,7 @@ function importLabFromPdf() {
     if (!f) return;
     if (f.type && f.type !== "application/pdf") { toast("Selecciona un archivo PDF", "err"); return; }
     if (f.size > 4 * 1024 * 1024) { toast("El PDF es muy grande (máx ~4 MB). Usa uno más liviano.", "err"); return; }
-    const done = showLoading("Leyendo el PDF con Claude (Sonnet 4.6)…");
+    const done = showLoading("Leyendo el PDF con Claude (Haiku 4.5)…");
     try {
       const b64 = await fileToBase64(f);
       const r = await fetch("/api/parse-lab", {
@@ -2700,6 +2749,7 @@ function choosePhotoSource(part, opts = {}) {
 
     const stack = el("div", { class: "stack" });
     stack.appendChild(el("button", { class: "modal-btn primary", html: ICON.camera({ size: 18 }) + " Tomar foto", onclick: () => { close(); captureOpensFiles() ? openCamera(part) : openNativeCamera(part); } }));
+    stack.appendChild(el("button", { class: "modal-btn ghost", html: ICON.camera({ size: 18 }) + " Tomar varias fotos", onclick: () => { close(); openCamera(part, "environment", { burst: true }); } }));
     stack.appendChild(el("button", { class: "modal-btn ghost", html: ICON.image({ size: 18 }) + " Elegir de la galería", onclick: () => { close(); openGalleryPicker(part); } }));
     if (opts.allowSkip) stack.appendChild(el("button", { class: "modal-btn ghost", html: ICON.check({ size: 18 }) + " Solo marcar completada", onclick: close }));
     else stack.appendChild(el("button", { class: "modal-btn ghost", text: "Cancelar", onclick: close }));
@@ -2725,10 +2775,15 @@ function openNativeCamera(part) {
   document.body.appendChild(inp); inp.click();
 }
 
-// Elige una foto de la galería y la confirma antes de subir.
+// Elige una o varias fotos de la galería y las confirma antes de subir.
 function openGalleryPicker(part) {
-  const inp = el("input", { type: "file", accept: "image/*", style: { display: "none" } });
-  inp.addEventListener("change", () => { const f = inp.files && inp.files[0]; inp.remove(); if (f) confirmPhoto(part, f, () => openGalleryPicker(part), "Elegir otra"); });
+  const inp = el("input", { type: "file", accept: "image/*", multiple: true, style: { display: "none" } });
+  inp.addEventListener("change", () => {
+    const files = inp.files ? Array.from(inp.files) : []; inp.remove();
+    if (!files.length) return;
+    if (files.length === 1) confirmPhoto(part, files[0], () => openGalleryPicker(part), "Elegir otra");
+    else confirmPhotos(part, files);
+  });
   document.body.appendChild(inp); inp.click();
 }
 
@@ -2748,6 +2803,44 @@ function confirmPhoto(part, blob, retakeFn, retakeLabel) {
   });
 }
 
+// Vista previa de varias fotos: miniaturas con eliminar antes de subir el lote.
+function confirmPhotos(part, blobs) {
+  let items = blobs.map(b => ({ blob: b, url: URL.createObjectURL(b) }));
+  const cleanup = () => { items.forEach(it => { try { URL.revokeObjectURL(it.url); } catch (_) {} }); };
+  openModal((modal, close) => {
+    modal.classList.add("center");
+    modal.appendChild(el("div", { class: "modal-ic", html: ICON.image({ size: 26 }) }));
+    const h = el("h2"); modal.appendChild(h);
+    const grid = el("div", { class: "photo-tray" });
+    modal.appendChild(grid);
+    const stack = el("div", { class: "stack" });
+    const useBtn = el("button", { class: "modal-btn primary" });
+    const cancelBtn = el("button", { class: "modal-btn ghost", text: "Cancelar", onclick: () => { close(); cleanup(); } });
+    useBtn.onclick = async () => {
+      const stamp = Date.now();
+      const files = items.map((it, i) => new File([it.blob], `foto_${stamp}_${i}.jpg`, { type: it.blob.type || "image/jpeg" }));
+      close(); cleanup();
+      await uploadPhotos(part, files);
+    };
+    function paint() {
+      h.textContent = items.length === 1 ? "¿Usar esta foto?" : `${items.length} fotos seleccionadas`;
+      grid.innerHTML = "";
+      items.forEach((it, i) => {
+        const cell = el("div", { class: "tray-cell" });
+        cell.appendChild(el("img", { src: it.url, alt: "vista previa " + (i + 1) }));
+        cell.appendChild(el("button", { class: "tray-del", title: "Quitar", html: ICON.close({ size: 14 }),
+          onclick: () => { try { URL.revokeObjectURL(it.url); } catch (_) {} items.splice(i, 1); if (!items.length) { close(); return; } paint(); } }));
+        grid.appendChild(cell);
+      });
+      useBtn.innerHTML = ICON.check({ size: 18 }) + " " + (items.length === 1 ? "Usar foto" : `Subir ${items.length} fotos`);
+    }
+    stack.appendChild(useBtn);
+    stack.appendChild(cancelBtn);
+    modal.appendChild(stack);
+    paint();
+  });
+}
+
 // Elimina una foto ya subida (storage + registro). Permitido a admin o autor/asignado (RLS).
 async function deletePhoto(photo) {
   const { error } = await supabase.from("photos").delete().eq("id", photo.id);
@@ -2758,12 +2851,21 @@ async function deletePhoto(photo) {
 }
 
 // Cámara dentro de la app vía getUserMedia (no depende del atributo 'capture').
-async function openCamera(part, facing = "environment") {
+// opts.burst = true → modo ráfaga (varias fotos en una sesión); opts.queue conserva
+// las fotos ya tomadas al voltear la cámara.
+async function openCamera(part, facing = "environment", opts = {}) {
+  const burst = !!opts.burst;
+  const queue = opts.queue || [];
   // fallback si el navegador no soporta cámara web: input nativo, luego confirmar
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    const inp = el("input", { type: "file", accept: "image/*", style: { display: "none" } });
-    inp.setAttribute("capture", "environment");
-    inp.addEventListener("change", () => { const f = inp.files && inp.files[0]; inp.remove(); if (f) confirmPhoto(part, f, () => openCamera(part, facing), "Repetir"); });
+    const inp = el("input", { type: "file", accept: "image/*", multiple: burst, style: { display: "none" } });
+    if (!burst) inp.setAttribute("capture", "environment");
+    inp.addEventListener("change", () => {
+      const files = inp.files ? Array.from(inp.files) : []; inp.remove();
+      if (!files.length) return;
+      if (files.length > 1) confirmPhotos(part, files);
+      else confirmPhoto(part, files[0], () => openCamera(part, facing, opts), "Repetir");
+    });
     document.body.appendChild(inp); inp.click();
     return;
   }
@@ -2832,25 +2934,54 @@ async function openCamera(part, facing = "environment") {
     canvas.getContext("2d").drawImage(video, 0, 0, w, h);
     canvas.toBlob((blob) => { if (blob) toPreview(blob); else toast("No se pudo capturar la foto", "err"); }, "image/jpeg", 0.92);
   } });
-  const closeBtn = el("button", { class: "cam-close", title: "Cerrar", html: ICON.close({ size: 22 }), onclick: stop });
+  // === modo ráfaga: tira de miniaturas + botón "Listo" ===
+  const tray = el("div", { class: "cam-tray" });
+  const revokeQueue = () => queue.forEach(q => { try { URL.revokeObjectURL(q.url); } catch (_) {} });
+  const doneBtn = el("button", { class: "cam-done", title: "Subir fotos", onclick: async () => {
+    if (!queue.length) { stop(); return; }
+    const stamp = Date.now();
+    const files = queue.map((q, i) => new File([q.blob], `foto_${stamp}_${i}.jpg`, { type: q.blob.type || "image/jpeg" }));
+    revokeQueue(); stop();
+    await uploadPhotos(part, files);
+  } });
+  function paintQueue() {
+    tray.innerHTML = "";
+    queue.forEach((q, i) => {
+      const cell = el("div", { class: "cam-tray-cell" });
+      cell.appendChild(el("img", { src: q.url, alt: "" }));
+      cell.appendChild(el("button", { class: "cam-tray-del", title: "Quitar", html: ICON.close({ size: 12 }),
+        onclick: () => { try { URL.revokeObjectURL(q.url); } catch (_) {} queue.splice(i, 1); paintQueue(); } }));
+      tray.appendChild(cell);
+    });
+    doneBtn.innerHTML = ICON.check({ size: 16 }) + " Listo" + (queue.length ? ` (${queue.length})` : "");
+    back.classList.toggle("has-queue", queue.length > 0);
+  }
+
+  const closeBtn = el("button", { class: "cam-close", title: "Cerrar", html: ICON.close({ size: 22 }),
+    onclick: () => { if (burst && queue.length && !confirm(`¿Descartar ${queue.length} foto(s) sin subir?`)) return; revokeQueue(); stop(); } });
   const switchBtn = el("button", { class: "cam-switch", title: "Voltear cámara", html: ICON.camera({ size: 22 }),
-    onclick: () => { stop(); openCamera(part, facing === "environment" ? "user" : "environment"); } });
+    onclick: () => { stop(); openCamera(part, facing === "environment" ? "user" : "environment", { burst, queue }); } });
   const retakeBtn = el("button", { class: "cam-retake", html: ICON.close({ size: 16 }) + " Repetir", onclick: toLive });
-  const useBtn = el("button", { class: "cam-use", html: ICON.check({ size: 16 }) + " Usar foto", onclick: async () => {
-    const blob = captured; stop();
-    if (blob) await uploadPhoto(part, new File([blob], "foto_" + Date.now() + ".jpg", { type: "image/jpeg" }));
+  const useBtn = el("button", { class: "cam-use", html: ICON.check({ size: 16 }) + " " + (burst ? "Agregar" : "Usar foto"), onclick: async () => {
+    const blob = captured;
+    if (!blob) return;
+    if (burst) { queue.push({ blob, url: URL.createObjectURL(blob) }); toLive(); paintQueue(); }
+    else { stop(); await uploadPhoto(part, new File([blob], "foto_" + Date.now() + ".jpg", { type: "image/jpeg" })); }
   } });
 
   back.appendChild(video);
   back.appendChild(focusRing);
   back.appendChild(photoImg);
   back.appendChild(el("div", { class: "cam-hint", text: part.title }));
-  back.appendChild(el("div", { class: "cam-tip", text: "Toca la imagen para enfocar" }));
+  back.appendChild(el("div", { class: "cam-tip", text: burst ? "Captura varias; pulsa “Listo” al terminar" : "Toca la imagen para enfocar" }));
+  back.appendChild(tray);
   back.appendChild(shutter);
   back.appendChild(closeBtn);
   back.appendChild(switchBtn);
   back.appendChild(retakeBtn);
   back.appendChild(useBtn);
+  back.appendChild(doneBtn);
+  if (burst) paintQueue();
   document.body.appendChild(back);
 }
 
