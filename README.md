@@ -81,7 +81,7 @@ recopila la evidencia, mientras cada equipo trabaja su parte y documenta lo que 
 |---|---|
 | **Frontend** | Un solo [`index.html`](index.html) en JavaScript vanilla — sin build, sin framework. Tema cálido en OKLCH, animaciones en CSS + Canvas. |
 | **Backend** | [Supabase](https://supabase.com): autenticación, Postgres con Row Level Security, Storage para fotos y Realtime. |
-| **IA** | Función serverless en Vercel ([`api/parse-lab.js`](api/parse-lab.js)) que usa la API de Anthropic (**Claude**) para leer los PDF de las guías. |
+| **IA** | Función serverless en Vercel ([`api/parse-lab.js`](api/parse-lab.js)) que usa la API de Anthropic (**Claude Haiku 4.5**, `claude-haiku-4-5`) para leer los PDF de las guías. |
 | **Hosting** | Vercel, con despliegue automático desde GitHub. |
 
 ## 📁 Estructura del repo

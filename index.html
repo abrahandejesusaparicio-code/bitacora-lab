@@ -2417,7 +2417,7 @@ function importLabFromPdf() {
     if (!f) return;
     if (f.type && f.type !== "application/pdf") { toast("Selecciona un archivo PDF", "err"); return; }
     if (f.size > 4 * 1024 * 1024) { toast("El PDF es muy grande (máx ~4 MB). Usa uno más liviano.", "err"); return; }
-    const done = showLoading("Leyendo el PDF con Claude (Sonnet 4.6)…");
+    const done = showLoading("Leyendo el PDF con Claude (Haiku 4.5)…");
     try {
       const b64 = await fileToBase64(f);
       const r = await fetch("/api/parse-lab", {
