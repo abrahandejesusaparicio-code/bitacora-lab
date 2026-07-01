@@ -2633,6 +2633,18 @@ function openPartDetail(part) {
     if (part.description) modal.appendChild(el("p", { class: "modal-sub", text: part.description }));
     const steps = Array.isArray(part.steps) ? part.steps : [];
 
+    // Al terminar TODOS los pasos, la parte se marca completa sola (como si
+    // pulsaras su check): cierra el detalle y dispara la celebración/foto.
+    // Solo para quien puede actuar; usa el estado fresco por si ya está hecha.
+    const allStepsChecked = () => steps.length > 0 && steps.every((_, k) => !!prog.steps[k]);
+    function maybeCompletePart() {
+      if (!allStepsChecked()) return;
+      const fresh = state.parts.find(p => p.id === part.id) || part;
+      if (fresh.completed_at || !canAct(fresh)) return;
+      close();
+      togglePartDone(fresh);
+    }
+
     if (steps.length) {
       const wrap = el("div", { style: { marginTop: "6px" } });
       steps.forEach((s, i) => {
@@ -2650,6 +2662,7 @@ function openPartDetail(part) {
           checkBtn.classList.toggle("on", now);
           checkBtn.innerHTML = now ? ICON.check({ size: 15 }) : String(i + 1);
           body.classList.toggle("step-done", now);
+          if (now) maybeCompletePart();
         });
         row.appendChild(checkBtn);
 
