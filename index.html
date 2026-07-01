@@ -2474,26 +2474,30 @@ function showLoading(text) {
 }
 function importLabFromPdf() {
   const inp = el("input", { type: "file", accept: "application/pdf,.pdf", style: { display: "none" } });
-  inp.addEventListener("change", async () => {
+  inp.addEventListener("change", () => {
     const f = inp.files && inp.files[0]; inp.remove();
-    if (!f) return;
-    if (f.type && f.type !== "application/pdf") { toast("Selecciona un archivo PDF", "err"); return; }
-    if (f.size > 4 * 1024 * 1024) { toast("El PDF es muy grande (máx ~4 MB). Usa uno más liviano.", "err"); return; }
-    const done = showLoading("Leyendo el PDF con Claude (Haiku 4.5)…");
-    try {
-      const b64 = await fileToBase64(f);
-      const r = await fetch("/api/parse-lab", {
-        method: "POST", headers: { "content-type": "application/json" },
-        body: JSON.stringify({ pdf_base64: b64, filename: f.name }),
-      });
-      const data = await r.json().catch(() => ({}));
-      done();
-      if (!r.ok) { toast(data.error || "No se pudo procesar el PDF", "err"); console.error(data); return; }
-      openPdfPreview(data);
-    } catch (e) { done(); console.error(e); toast("Error al procesar el PDF", "err"); }
+    if (f) importPdfFile(f);
   });
   document.body.appendChild(inp);
   inp.click();
+}
+// Procesa un PDF de guía (del selector o arrastrado): lo lee con Claude y
+// abre la vista previa para crear el laboratorio.
+async function importPdfFile(f) {
+  if (f.type && f.type !== "application/pdf") { toast("Selecciona un archivo PDF", "err"); return; }
+  if (f.size > 4 * 1024 * 1024) { toast("El PDF es muy grande (máx ~4 MB). Usa uno más liviano.", "err"); return; }
+  const done = showLoading("Leyendo el PDF con Claude (Haiku 4.5)…");
+  try {
+    const b64 = await fileToBase64(f);
+    const r = await fetch("/api/parse-lab", {
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ pdf_base64: b64, filename: f.name }),
+    });
+    const data = await r.json().catch(() => ({}));
+    done();
+    if (!r.ok) { toast(data.error || "No se pudo procesar el PDF", "err"); console.error(data); return; }
+    openPdfPreview(data);
+  } catch (e) { done(); console.error(e); toast("Error al procesar el PDF", "err"); }
 }
 function openPdfPreview(data) {
   const parts = Array.isArray(data.parts) ? data.parts.slice() : [];
@@ -3017,14 +3021,18 @@ function dragHasFiles(e) {
 }
 let dragDepth = 0, dropzoneEl = null;
 function ensureDropzone() {
-  if (dropzoneEl) return;
-  dropzoneEl = el("div", { class: "dropzone-back" },
-    el("div", { class: "dropzone-box" }, [
-      el("div", { class: "dz-ic", html: ICON.image({ size: 32 }) }),
-      el("h2", { text: "Suelta tus fotos aquí" }),
-      el("p", { text: "Las adjuntaremos como evidencia" }),
-    ]));
-  document.body.appendChild(dropzoneEl);
+  if (!dropzoneEl) {
+    dropzoneEl = el("div", { class: "dropzone-back" },
+      el("div", { class: "dropzone-box" }, [
+        el("div", { class: "dz-ic", html: ICON.image({ size: 32 }) }),
+        el("h2"),
+        el("p"),
+      ]));
+    document.body.appendChild(dropzoneEl);
+  }
+  // el admin también puede soltar el PDF de una guía para crear un lab
+  dropzoneEl.querySelector("h2").textContent = isAdmin() ? "Suelta tus archivos aquí" : "Suelta tus fotos aquí";
+  dropzoneEl.querySelector("p").textContent = isAdmin() ? "Fotos → evidencia · PDF de guía → nuevo laboratorio" : "Las adjuntaremos como evidencia";
 }
 function endFileDrag() { dragDepth = 0; document.body.classList.remove("dragging-files"); }
 window.addEventListener("dragenter", (e) => {
@@ -3048,10 +3056,20 @@ window.addEventListener("drop", (e) => {
   if (active && files.length) handleDroppedFiles(files);
 });
 
-// Enruta los archivos soltados: filtra imágenes y decide su destino.
+// Enruta los archivos soltados: un PDF importa un laboratorio (admin);
+// las imágenes se adjuntan como evidencia de una parte.
+function isPdfFile(f) { return f.type === "application/pdf" || /\.pdf$/i.test(f.name || ""); }
 async function handleDroppedFiles(all) {
+  const pdfs = all.filter(isPdfFile);
+  if (pdfs.length) {
+    if (!isAdmin()) { toast("Solo el administrador puede importar labs desde PDF", "err"); return; }
+    if (pdfs.length > 1) toast("Se importa un PDF a la vez; usando " + pdfs[0].name);
+    else if (all.length > pdfs.length) toast("Las imágenes del arrastre se ignoraron; suéltalas aparte para adjuntarlas");
+    importPdfFile(pdfs[0]);
+    return;
+  }
   const files = all.filter(f => f.type && f.type.startsWith("image/"));
-  if (!files.length) { toast("Solo se pueden adjuntar imágenes", "err"); return; }
+  if (!files.length) { toast(isAdmin() ? "Suelta imágenes (evidencia) o el PDF de una guía" : "Solo se pueden adjuntar imágenes", "err"); return; }
   if (files.length < all.length) toast(`${all.length - files.length} archivo(s) ignorado(s): no son imágenes`);
   if (state.currentLabId) { pickDropTarget(files); return; }
   // en la lista de labs: primero elegir laboratorio
