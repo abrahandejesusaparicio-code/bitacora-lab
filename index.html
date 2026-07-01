@@ -148,12 +148,16 @@
   .chip .cdot { width: 6px; height: 6px; border-radius: 2px; background: var(--accent); }
   .pill-done { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: oklch(90% 0.06 165 / .85); color: oklch(42% 0.1 165); font-family: var(--meta-font); display: inline-flex; gap: 5px; align-items: center; }
 
-  /* Drag & drop de fotos: al arrastrar archivos sobre la ventana, las partes
-     donde puedo actuar se marcan como zonas para soltar. */
-  body.dragging-files .part.droppable { outline: 2px dashed var(--accent); outline-offset: -5px; border-radius: 14px; position: relative; }
-  body.dragging-files .part.droppable > * { pointer-events: none; }
-  body.dragging-files .part.droppable.drag-over { outline-style: solid; background: oklch(95% 0.045 80); }
-  body.dragging-files .part.droppable.drag-over::after { content: "Suelta para adjuntar"; position: absolute; top: 8px; right: 12px; font-size: 11px; font-weight: 700; font-family: var(--meta-font); color: oklch(46% 0.11 75); background: oklch(92% 0.06 85 / .9); border-radius: 999px; padding: 3px 10px; pointer-events: none; }
+  /* Drag & drop de fotos: al arrastrar archivos sobre la ventana aparece una
+     zona de soltado a pantalla completa (suelta en cualquier lugar). */
+  .dropzone-back { position: fixed; inset: 0; z-index: 96; display: none; place-items: center; padding: 24px; background: oklch(28% 0.04 60 / .6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); pointer-events: none; }
+  body.dragging-files .dropzone-back { display: grid; animation: fadeIn .15s var(--ease-out); }
+  .dropzone-box { display: grid; place-items: center; gap: 12px; text-align: center; padding: 48px 64px; border: 3px dashed oklch(94% 0.03 85 / .9); border-radius: 26px; background: oklch(32% 0.045 60 / .65); }
+  .dropzone-box .dz-ic { width: 66px; height: 66px; border-radius: 20px; background: var(--accent); display: grid; place-items: center; color: #fff; box-shadow: 0 10px 26px oklch(30% 0.06 60 / .45); animation: dzBounce 1.2s ease-in-out infinite; }
+  .dropzone-box .dz-ic svg { width: 32px; height: 32px; }
+  .dropzone-box h2 { font-size: clamp(20px, 4vw, 26px); font-weight: 750; color: oklch(98% 0.01 85); }
+  .dropzone-box p { font-size: 14px; color: oklch(92% 0.02 85 / .9); }
+  @keyframes dzBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }
 
   /* Add bar */
   .add-bar { display: flex; align-items: center; gap: 10px; padding: 12px 14px; }
@@ -2342,7 +2346,6 @@ function renderPart(part, i) {
     body.appendChild(pr);
   }
   row.appendChild(body);
-  if (act) enablePhotoDrop(row, part);
 
   if (isAdmin()) {
     const actions = el("div", { class: "pactions" });
@@ -3004,16 +3007,29 @@ function pickPhoto(part) {
 }
 
 /* ---------- Drag & drop de fotos desde el explorador ---------- */
-// Al arrastrar archivos sobre la ventana se resaltan las partes donde puedo
-// actuar; al soltar imágenes sobre una, pasan por la vista previa habitual.
+// Estilo "suelta y listo": arrastra archivos sobre la ventana y aparece una
+// zona a pantalla completa. Suelta en cualquier lugar; la app pregunta a qué
+// parte (y laboratorio, si hace falta) van, saltándose la pregunta cuando
+// solo hay una opción. Luego pasan por la vista previa habitual.
 function dragHasFiles(e) {
   const t = e.dataTransfer && e.dataTransfer.types;
   return !!t && Array.from(t).includes("Files");
 }
-let dragDepth = 0;
+let dragDepth = 0, dropzoneEl = null;
+function ensureDropzone() {
+  if (dropzoneEl) return;
+  dropzoneEl = el("div", { class: "dropzone-back" },
+    el("div", { class: "dropzone-box" }, [
+      el("div", { class: "dz-ic", html: ICON.image({ size: 32 }) }),
+      el("h2", { text: "Suelta tus fotos aquí" }),
+      el("p", { text: "Las adjuntaremos como evidencia" }),
+    ]));
+  document.body.appendChild(dropzoneEl);
+}
 function endFileDrag() { dragDepth = 0; document.body.classList.remove("dragging-files"); }
 window.addEventListener("dragenter", (e) => {
-  if (!dragHasFiles(e)) return;
+  if (!dragHasFiles(e) || state.view !== "app") return;
+  ensureDropzone();
   dragDepth++;
   document.body.classList.add("dragging-files");
 });
@@ -3021,29 +3037,55 @@ window.addEventListener("dragleave", () => {
   dragDepth = Math.max(0, dragDepth - 1);
   if (!dragDepth) document.body.classList.remove("dragging-files");
 });
-// preventDefault global: sin esto el navegador abre el archivo al soltarlo fuera de una parte.
-window.addEventListener("dragover", (e) => { if (dragHasFiles(e)) e.preventDefault(); });
-window.addEventListener("drop", (e) => { if (dragHasFiles(e)) e.preventDefault(); endFileDrag(); });
+// preventDefault global: sin esto el navegador abre el archivo al soltarlo.
+window.addEventListener("dragover", (e) => { if (dragHasFiles(e)) { e.preventDefault(); e.dataTransfer.dropEffect = "copy"; } });
+window.addEventListener("drop", (e) => {
+  if (!dragHasFiles(e)) return;
+  e.preventDefault();
+  const active = document.body.classList.contains("dragging-files");
+  endFileDrag();
+  const files = Array.from(e.dataTransfer.files || []);
+  if (active && files.length) handleDroppedFiles(files);
+});
 
-function enablePhotoDrop(row, part) {
-  row.classList.add("droppable");
-  row.addEventListener("dragover", (e) => {
-    if (!dragHasFiles(e)) return;
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "copy";
-    row.classList.add("drag-over");
+// Enruta los archivos soltados: filtra imágenes y decide su destino.
+async function handleDroppedFiles(all) {
+  const files = all.filter(f => f.type && f.type.startsWith("image/"));
+  if (!files.length) { toast("Solo se pueden adjuntar imágenes", "err"); return; }
+  if (files.length < all.length) toast(`${all.length - files.length} archivo(s) ignorado(s): no son imágenes`);
+  if (state.currentLabId) { pickDropTarget(files); return; }
+  // en la lista de labs: primero elegir laboratorio
+  const labs = state.labs || [];
+  if (!labs.length) { toast("Crea un laboratorio primero", "err"); return; }
+  if (labs.length === 1) { await openLab(labs[0].id); pickDropTarget(files); return; }
+  openModal((modal, close) => {
+    modal.classList.add("center");
+    modal.appendChild(el("div", { class: "modal-ic", html: ICON.image({ size: 26 }) }));
+    modal.appendChild(el("h2", { text: "¿En qué laboratorio?" }));
+    modal.appendChild(el("p", { class: "modal-sub", text: (files.length === 1 ? "1 foto" : files.length + " fotos") + " para adjuntar como evidencia" }));
+    const stack = el("div", { class: "stack" });
+    labs.forEach(lab => stack.appendChild(el("button", { class: "modal-btn ghost", text: lab.name,
+      onclick: async () => { close(); await openLab(lab.id); pickDropTarget(files); } })));
+    stack.appendChild(el("button", { class: "modal-btn ghost", text: "Cancelar", onclick: close }));
+    modal.appendChild(stack);
   });
-  row.addEventListener("dragleave", () => row.classList.remove("drag-over"));
-  row.addEventListener("drop", (e) => {
-    if (!dragHasFiles(e)) return;
-    e.preventDefault(); e.stopPropagation();
-    row.classList.remove("drag-over");
-    endFileDrag();
-    const all = Array.from(e.dataTransfer.files || []);
-    const files = all.filter(f => f.type && f.type.startsWith("image/"));
-    if (!files.length) { toast("Solo se pueden adjuntar imágenes", "err"); return; }
-    if (files.length < all.length) toast(`${all.length - files.length} archivo(s) ignorado(s): no son imágenes`);
-    confirmPhotos(part, files);
+}
+
+// Elige la parte destino dentro del lab abierto (directo si solo hay una).
+function pickDropTarget(files) {
+  const T = unitTerm(state.parts);
+  const parts = state.parts.filter(p => canAct(p));
+  if (!parts.length) { toast("No tienes " + T.p + " asignadas en este laboratorio", "err"); return; }
+  if (parts.length === 1) { confirmPhotos(parts[0], files); return; }
+  openModal((modal, close) => {
+    modal.classList.add("center");
+    modal.appendChild(el("div", { class: "modal-ic", html: ICON.image({ size: 26 }) }));
+    modal.appendChild(el("h2", { text: files.length === 1 ? "¿A qué " + T.s + " pertenece esta foto?" : "¿A qué " + T.s + " pertenecen estas fotos?" }));
+    const stack = el("div", { class: "stack" });
+    parts.forEach(p => stack.appendChild(el("button", { class: "modal-btn ghost", text: p.title,
+      onclick: () => { close(); confirmPhotos(p, files); } })));
+    stack.appendChild(el("button", { class: "modal-btn ghost", text: "Cancelar", onclick: close }));
+    modal.appendChild(stack);
   });
 }
 
