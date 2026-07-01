@@ -148,6 +148,13 @@
   .chip .cdot { width: 6px; height: 6px; border-radius: 2px; background: var(--accent); }
   .pill-done { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: oklch(90% 0.06 165 / .85); color: oklch(42% 0.1 165); font-family: var(--meta-font); display: inline-flex; gap: 5px; align-items: center; }
 
+  /* Drag & drop de fotos: al arrastrar archivos sobre la ventana, las partes
+     donde puedo actuar se marcan como zonas para soltar. */
+  body.dragging-files .part.droppable { outline: 2px dashed var(--accent); outline-offset: -5px; border-radius: 14px; position: relative; }
+  body.dragging-files .part.droppable > * { pointer-events: none; }
+  body.dragging-files .part.droppable.drag-over { outline-style: solid; background: oklch(95% 0.045 80); }
+  body.dragging-files .part.droppable.drag-over::after { content: "Suelta para adjuntar"; position: absolute; top: 8px; right: 12px; font-size: 11px; font-weight: 700; font-family: var(--meta-font); color: oklch(46% 0.11 75); background: oklch(92% 0.06 85 / .9); border-radius: 999px; padding: 3px 10px; pointer-events: none; }
+
   /* Add bar */
   .add-bar { display: flex; align-items: center; gap: 10px; padding: 12px 14px; }
   .add-bar input { flex: 1; min-width: 0; border: 0; background: transparent; font: inherit; font-size: 16px; color: var(--base-content); outline: none; font-weight: 500; }
@@ -2335,6 +2342,7 @@ function renderPart(part, i) {
     body.appendChild(pr);
   }
   row.appendChild(body);
+  if (act) enablePhotoDrop(row, part);
 
   if (isAdmin()) {
     const actions = el("div", { class: "pactions" });
@@ -2993,6 +3001,50 @@ function askForPhoto(part) {
 
 function pickPhoto(part) {
   choosePhotoSource(part, { title: "Agregar foto", allowSkip: false });
+}
+
+/* ---------- Drag & drop de fotos desde el explorador ---------- */
+// Al arrastrar archivos sobre la ventana se resaltan las partes donde puedo
+// actuar; al soltar imágenes sobre una, pasan por la vista previa habitual.
+function dragHasFiles(e) {
+  const t = e.dataTransfer && e.dataTransfer.types;
+  return !!t && Array.from(t).includes("Files");
+}
+let dragDepth = 0;
+function endFileDrag() { dragDepth = 0; document.body.classList.remove("dragging-files"); }
+window.addEventListener("dragenter", (e) => {
+  if (!dragHasFiles(e)) return;
+  dragDepth++;
+  document.body.classList.add("dragging-files");
+});
+window.addEventListener("dragleave", () => {
+  dragDepth = Math.max(0, dragDepth - 1);
+  if (!dragDepth) document.body.classList.remove("dragging-files");
+});
+// preventDefault global: sin esto el navegador abre el archivo al soltarlo fuera de una parte.
+window.addEventListener("dragover", (e) => { if (dragHasFiles(e)) e.preventDefault(); });
+window.addEventListener("drop", (e) => { if (dragHasFiles(e)) e.preventDefault(); endFileDrag(); });
+
+function enablePhotoDrop(row, part) {
+  row.classList.add("droppable");
+  row.addEventListener("dragover", (e) => {
+    if (!dragHasFiles(e)) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "copy";
+    row.classList.add("drag-over");
+  });
+  row.addEventListener("dragleave", () => row.classList.remove("drag-over"));
+  row.addEventListener("drop", (e) => {
+    if (!dragHasFiles(e)) return;
+    e.preventDefault(); e.stopPropagation();
+    row.classList.remove("drag-over");
+    endFileDrag();
+    const all = Array.from(e.dataTransfer.files || []);
+    const files = all.filter(f => f.type && f.type.startsWith("image/"));
+    if (!files.length) { toast("Solo se pueden adjuntar imágenes", "err"); return; }
+    if (files.length < all.length) toast(`${all.length - files.length} archivo(s) ignorado(s): no son imágenes`);
+    confirmPhotos(part, files);
+  });
 }
 
 async function openLightbox(photo, part) {
